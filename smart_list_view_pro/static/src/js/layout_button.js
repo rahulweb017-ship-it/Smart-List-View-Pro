@@ -1,3 +1,5 @@
+/** @odoo-module **/
+
 import { Component, useRef, useState } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { usePopover } from "@web/core/popover/popover_hook";

@@ -62,14 +62,17 @@ class SmartListPreset(models.Model):
     layout_json = fields.Text(required=True)
     active = fields.Boolean(default=True)
 
-    _personal_name_unique = models.UniqueIndex(
-        "(owner_id, view_key, lower(name)) WHERE visibility = 'personal' AND active",
-        "You already have a layout with this name for this list.",
-    )
-    _shared_name_unique = models.UniqueIndex(
-        "(view_key, lower(name)) WHERE visibility = 'shared' AND active",
-        "A shared layout with this name already exists for this list.",
-    )
+    def init(self):
+        # Partial, case-insensitive unique indexes (no declarative equivalent
+        # before Odoo 19). _check_name_available gives the readable error.
+        self.env.cr.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS smart_list_preset_personal_name_unique
+                ON smart_list_preset (owner_id, view_key, lower(name))
+                WHERE visibility = 'personal' AND active;
+            CREATE UNIQUE INDEX IF NOT EXISTS smart_list_preset_shared_name_unique
+                ON smart_list_preset (view_key, lower(name))
+                WHERE visibility = 'shared' AND active;
+        """)
 
     @api.depends("model_name", "view_ref", "action_ref")
     def _compute_view_key(self):
@@ -85,6 +88,10 @@ class SmartListPreset(models.Model):
     @api.model
     def _is_preset_admin(self):
         return self.env.su or self.env.user.has_group(ADMIN_GROUP)
+
+    @api.model
+    def _can_read_field(self, Model, field):
+        return self.env.su or not field.groups or Model.user_has_groups(field.groups)
 
     @api.model
     def _normalize_name(self, name):
@@ -105,7 +112,7 @@ class SmartListPreset(models.Model):
         Model = self.env[model_name]
         if Model._abstract or Model._transient:
             raise ValidationError(_("Layouts are only supported on regular models."))
-        if not Model.has_access("read"):
+        if not Model.check_access_rights("read", raise_exception=False):
             raise AccessError(_("You cannot save a layout for a list you cannot read."))
         return Model
 
@@ -151,7 +158,7 @@ class SmartListPreset(models.Model):
                 raise ValidationError(_("A layout column is listed twice."))
             seen.add(fname)
             field = Model._fields.get(fname)
-            if not field or not Model._has_field_access(field, "read"):
+            if not field or not self._can_read_field(Model, field):
                 if not strict:
                     dropped += 1
                     continue

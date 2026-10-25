@@ -1,4 +1,6 @@
-import { reactive, useEffect, useState, useSubEnv } from "@odoo/owl";
+/** @odoo-module **/
+
+import { markRaw, reactive, useEffect, useState, useSubEnv } from "@odoo/owl";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { patch } from "@web/core/utils/patch";
 import { ListController } from "@web/views/list/list_controller";
@@ -24,7 +26,9 @@ patch(ListController.prototype, {
                 columns: null,
                 applied: null, // { id, name, columns } of the last applied or saved layout
             });
-            useSubEnv({ smartListLayout: this.smartLayout });
+            // Odoo 17: the renderer, not the controller, knows the active optional columns.
+            this.smartHooks = markRaw({ getOptionalActiveFields: null });
+            useSubEnv({ smartListLayout: this.smartLayout, smartListHooks: this.smartHooks });
             this.getSmartLayoutColumns = this.getSmartLayoutColumns.bind(this);
         }
     },
@@ -64,13 +68,14 @@ patch(ListController.prototype, {
      */
     getSmartLayoutColumns() {
         const evalContext = this.model.root.evalContext;
+        const optional = this.smartHooks.getOptionalActiveFields?.() || {};
         const columns = getEligibleColumns(this.props.archInfo.columns, (column) =>
             evaluateBooleanExpr(column.column_invisible, evalContext)
         );
         return columns.map((column) => ({
             field: column.name,
             label: column.label || this.props.fields[column.name]?.string || column.name,
-            nativeVisible: !column.optional || Boolean(this.optionalActiveFields[column.name]),
+            nativeVisible: !column.optional || Boolean(optional[column.name]),
         }));
     },
 });
@@ -89,13 +94,15 @@ patch(ListRenderer.prototype, {
             layout && layout.resModel === this.props.list.resModel ? useState(layout) : null;
         this.smartWidthCache = new Map();
         if (this.smartLayout) {
+            this.env.smartListHooks.getOptionalActiveFields = () => this.optionalActiveFields;
+            // Odoo 17 keeps the active columns in state: refresh them when the
+            // layout changes, and let the widths be computed again.
             let mounted = false;
             useEffect(
                 () => {
-                    // Same column ids with new widths: the width hook keeps its frozen
-                    // widths unless asked to recompute them.
-                    if (mounted && this.constructor.useMagicColumnWidths) {
-                        this.columnWidths.resetWidths();
+                    if (mounted) {
+                        this.keepColumnWidths = false;
+                        this.state.columns = this.getActiveColumns(this.props.list);
                     }
                     mounted = true;
                 },
@@ -127,9 +134,27 @@ patch(ListRenderer.prototype, {
         if (cached && cached.source === column && cached.width === width) {
             return cached.column;
         }
-        const copy = { ...column, attrs: { ...column.attrs, width: `${width}px` } };
+        const copy = { ...column, smartWidth: width };
         this.smartWidthCache.set(column.id, { source: column, width, column: copy });
         return copy;
+    },
+
+    /** Odoo 17 only uses arch widths as a minimum: enforce the layout widths. */
+    freezeColumnWidths() {
+        super.freezeColumnWidths(...arguments);
+        if (!this.smartLayout?.columns) {
+            return;
+        }
+        const headers = [
+            ...this.tableRef.el.querySelectorAll("thead th:not(.o_list_actions_header)"),
+        ];
+        const offset = this.hasSelectors ? 1 : 0;
+        this.state.columns.forEach((column, index) => {
+            const th = headers[index + offset];
+            if (column.smartWidth && th) {
+                th.style.width = `${column.smartWidth}px`;
+            }
+        });
     },
 
     get displayOptionalFields() {

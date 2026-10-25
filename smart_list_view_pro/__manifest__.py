@@ -1,7 +1,7 @@
 {
     "name": "Smart List View Pro",
     "summary": "Save personal list layouts and publish team presets without modifying business records.",
-    "version": "19.0.1.0.0",
+    "version": "17.0.1.0.0",
     "category": "Productivity",
     "author": "Softdeviser",
     "website": "https://softdeviser.com",
@@ -27,9 +27,6 @@
         ],
         "web.assets_tests": [
             "smart_list_view_pro/static/tests/tours/**/*.js",
-        ],
-        "web.assets_unit_tests": [
-            "smart_list_view_pro/static/tests/*.test.js",
         ],
     },
     "images": ["static/description/banner.gif"],

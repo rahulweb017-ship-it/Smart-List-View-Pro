@@ -1,3 +1,5 @@
+/** @odoo-module **/
+
 /**
  * Pure helpers for list layout state. No DOM, no services: unit-testable.
  *

@@ -1,7 +1,8 @@
+/** @odoo-module **/
+
 import { Component, onMounted, onPatched, useRef, useState } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
-import { RPCError } from "@web/core/network/rpc";
-import { user } from "@web/core/user";
+import { RPCError } from "@web/core/network/rpc_service";
 import { useAutofocus, useService } from "@web/core/utils/hooks";
 import {
     MAX_COLUMN_WIDTH,
@@ -40,6 +41,7 @@ export class SmartLayoutPanel extends Component {
         // so a slow answer can never be applied to another list.
         this.orm = useService("orm");
         this.notification = useService("notification");
+        this.user = useService("user");
         this.rootRef = useRef("root");
         useAutofocus(); // the name input of the save/rename form
         this.layout = useState(this.props.layout);
@@ -238,7 +240,7 @@ export class SmartLayoutPanel extends Component {
                     this.props.viewRef,
                     this.props.actionRef,
                 ]),
-                user.hasGroup(ADMIN_GROUP),
+                this.user.hasGroup(ADMIN_GROUP),
             ]);
             this.state.presets = presets;
             this.state.isAdmin = isAdmin;

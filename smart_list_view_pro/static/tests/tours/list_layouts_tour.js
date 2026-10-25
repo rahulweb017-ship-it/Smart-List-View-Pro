@@ -1,3 +1,5 @@
+/** @odoo-module **/
+
 import { registry } from "@web/core/registry";
 
 /**
@@ -7,11 +9,23 @@ import { registry } from "@web/core/registry";
  *
  * @param {Object} fields `second` natively follows `first`; `resize` is shown
  */
-function listLayoutsSteps({ first, second, resize }) {
+/** Odoo 17 tour syntax: steps without action are checks, "edit" is "text". */
+function forOdoo17(steps) {
+    return steps.map((step) => {
+        if (!step.run) {
+            return { ...step, isCheck: true };
+        }
+        const edit = /^edit (.+?)( && press Enter)?$/.exec(step.run);
+        return edit ? { ...step, run: `text ${edit[1]}` } : step;
+    });
+}
+
+function listLayoutsSteps({ first, second, resize, opensAsList = false }) {
     const row = (field) => `.o_smart_list_column[data-field=${field}]`;
     const nativeOrder = `thead th[data-name=${first}] + th[data-name=${second}]`;
     return [
-        { trigger: ".o_switch_view.o_list", run: "click" },
+        // Switching to the view already shown reloads it: only switch when needed.
+        ...(opensAsList ? [] : [{ trigger: ".o_switch_view.o_list", run: "click" }]),
         { trigger: ".o_list_view .o_data_row" },
         // Layouts control and panel.
         { trigger: ".o_control_panel .o_smart_list_layouts_button", run: "click" },
@@ -33,12 +47,12 @@ function listLayoutsSteps({ first, second, resize }) {
         { trigger: "body:not(:has(.o_smart_list_panel))" },
         // Native sorting, both directions.
         { trigger: "thead th.o_column_sortable[data-name]:first", run: "click" },
-        { trigger: "thead .o_list_sortable_icon.fa-sort-asc, thead .o_list_sortable_icon.fa-sort-desc" },
+        { trigger: "thead th.o_column_sortable i.fa-angle-up, thead th.o_column_sortable i.fa-angle-down:not(.opacity-0)" },
         {
-            trigger: "thead th.o_column_sortable[data-name]:has(.fa-sort-asc, .fa-sort-desc)",
+            trigger: "thead th.o_column_sortable[data-name]:has(i.fa-angle-up, i.fa-angle-down:not(.opacity-0))",
             run: "click",
         },
-        { trigger: "thead .o_list_sortable_icon.fa-sort-asc, thead .o_list_sortable_icon.fa-sort-desc" },
+        { trigger: "thead th.o_column_sortable i.fa-angle-up, thead th.o_column_sortable i.fa-angle-down:not(.opacity-0)" },
         // Native pager.
         { trigger: ".o_pager_next:enabled", run: "click" },
         { trigger: ".o_pager_value:contains(81-)" },
@@ -46,7 +60,7 @@ function listLayoutsSteps({ first, second, resize }) {
         { trigger: ".o_pager_value:contains(1-80)" },
         // Selection: the control yields its place to native selection actions.
         { trigger: ".o_data_row:first .o_list_record_selector input", run: "click" },
-        { trigger: ".o_selection_box" },
+        { trigger: ".o_list_selection_box" },
         { trigger: ".o_control_panel:not(:has(.o_smart_list_layouts_button))" },
         { trigger: ".o_data_row:first .o_list_record_selector input", run: "click" },
         { trigger: ".o_control_panel .o_smart_list_layouts_button" },
@@ -59,18 +73,21 @@ function listLayoutsSteps({ first, second, resize }) {
 }
 
 registry.category("web_tour.tours").add("smart_list_view_pro_contacts", {
-    url: "/odoo/action-contacts.action_contacts",
-    steps: () => listLayoutsSteps({ first: "email", second: "phone", resize: "display_name" }),
+    test: true,
+    url: "/web#action=contacts.action_contacts",
+    steps: () => forOdoo17(listLayoutsSteps({ first: "complete_name", second: "phone", resize: "email" })),
 });
 
 registry.category("web_tour.tours").add("smart_list_view_pro_crm", {
-    url: "/odoo/action-crm.crm_lead_action_pipeline",
-    steps: () => listLayoutsSteps({ first: "contact_name", second: "email_from", resize: "name" }),
+    test: true,
+    url: "/web#action=crm.crm_lead_action_pipeline",
+    steps: () => forOdoo17(listLayoutsSteps({ first: "contact_name", second: "email_from", resize: "name" })),
 });
 
 registry.category("web_tour.tours").add("smart_list_view_pro_sale", {
-    url: "/odoo/action-sale.action_quotations_with_onboarding",
-    steps: () => listLayoutsSteps({ first: "partner_id", second: "user_id", resize: "name" }),
+    test: true,
+    url: "/web#action=sale.action_quotations_with_onboarding",
+    steps: () => forOdoo17(listLayoutsSteps({ first: "partner_id", second: "user_id", resize: "name", opensAsList: true })),
 });
 
 const personal = ".o_smart_list_section_personal";
@@ -78,8 +95,9 @@ const shared = ".o_smart_list_section_shared";
 
 /** Layout administrator: save, apply, rename, duplicate, delete, publish. */
 registry.category("web_tour.tours").add("smart_list_view_pro_presets_admin", {
-    url: "/odoo/action-contacts.action_contacts",
-    steps: () => [
+    test: true,
+    url: "/web#action=contacts.action_contacts",
+    steps: () => forOdoo17([
         { trigger: ".o_switch_view.o_list", run: "click" },
         { trigger: ".o_list_view .o_data_row" },
         { trigger: ".o_control_panel .o_smart_list_layouts_button", run: "click" },
@@ -118,13 +136,14 @@ registry.category("web_tour.tours").add("smart_list_view_pro_presets_admin", {
         { trigger: `${shared} .o_smart_list_apply:contains(SLV Calls)` },
         { trigger: ".o_smart_list_panel .btn-close", run: "click" },
         { trigger: "body:not(:has(.o_smart_list_panel))" },
-    ],
+    ]),
 });
 
 /** Internal user: sees and applies the shared layout, can only copy it. */
 registry.category("web_tour.tours").add("smart_list_view_pro_presets_employee", {
-    url: "/odoo/action-contacts.action_contacts",
-    steps: () => [
+    test: true,
+    url: "/web#action=contacts.action_contacts",
+    steps: () => forOdoo17([
         { trigger: ".o_switch_view.o_list", run: "click" },
         { trigger: ".o_list_view .o_data_row" },
         { trigger: ".o_control_panel .o_smart_list_layouts_button", run: "click" },
@@ -145,5 +164,5 @@ registry.category("web_tour.tours").add("smart_list_view_pro_presets_employee", 
         { trigger: `${personal} .o_smart_list_apply:contains(SLV Calls)` },
         { trigger: ".o_smart_list_panel .btn-close", run: "click" },
         { trigger: "body:not(:has(.o_smart_list_panel))" },
-    ],
+    ]),
 });
