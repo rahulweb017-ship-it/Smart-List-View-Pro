@@ -1,5 +1,10 @@
 # Changelog
 
+## 17.0.1.0.0 (unreleased)
+- Port of 19.0.1.0.0 to Odoo 17.0 (same features and security rules).
+- Odoo 17 widths: other columns make room so the list never overflows sideways.
+- JS unit tests (HOOT) are not part of this branch; Odoo 17 has no HOOT runner.
+
 ## 19.0.1.0.0 (unreleased)
 - Milestone A: module skeleton, admin group, "Layouts" button with
   "List layouts" panel on top-level list views. The list template extension is

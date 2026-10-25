@@ -40,6 +40,16 @@ function listLayoutsSteps({ first, second, resize, opensAsList = false }) {
         { trigger: `thead:not(:has(th[data-name=${first}]))` },
         { trigger: `${row(resize)} .o_smart_list_width`, run: "edit 300 && press Enter" },
         { trigger: `thead th[data-name=${resize}][style*="width: 3"]` },
+        {
+            // The other columns make room: the list must not overflow sideways.
+            trigger: `thead th[data-name=${resize}][style*="width: 3"]`,
+            run() {
+                const list = document.querySelector(".o_list_renderer");
+                if (list.scrollWidth > list.clientWidth + 1) {
+                    console.error("list overflows horizontally after a width change");
+                }
+            },
+        },
         { trigger: ".o_smart_list_reset", run: "click" },
         { trigger: nativeOrder },
         { trigger: ".o_smart_list_panel:not(:has(.o_smart_list_modified_notice))" },

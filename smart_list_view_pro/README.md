@@ -1,4 +1,4 @@
-# Smart List View Pro (Odoo 19)
+# Smart List View Pro (Odoo 17)
 
 Save personal list layouts and publish team presets without modifying business records.
 
@@ -23,8 +23,8 @@ after a reload (automatic defaults are a planned P1 feature).
 - Not editable while the list is grouped (a notice is shown).
 
 ## Supported
-- Odoo 19 Community / Enterprise, self-hosted or Odoo.sh. Not Odoo Online.
-  Verified on Odoo 19.0+e (Enterprise, self-hosted); Community not yet tested.
+- Odoo 17 Community / Enterprise, self-hosted or Odoo.sh. Not Odoo Online.
+  Verified on Odoo 17.0 Community (self-hosted); Enterprise not yet tested on this version.
 - Top-level list views opened from a window action.
 
 ## Install
@@ -83,12 +83,12 @@ keeping only the columns that user may read. Layout names are unique per list
 odoo-bin -c odoo.conf --addons-path=<odoo>/addons,<this repo> -d <dev_db> \
     -i smart_list_view_pro --stop-after-init --test-enable --test-tags /smart_list_view_pro
 ```
-JS unit tests: open `/web/tests?filter=smart_list_view_pro` while logged in as admin
-(the headless run needs the `websocket-client` Python package).
+Odoo 17 has no HOOT test runner: the 17.0 branch is covered by the Python
+tests and the browser tours (which need the `websocket-client` Python package).
 
 ## Support
 Softdeviser · rahul@softdeviser.com · https://softdeviser.com
 
-This release supports Odoo 19.0 (self-hosted and Odoo.sh). Odoo Online is not
+This release supports Odoo 17.0 (self-hosted and Odoo.sh). Odoo Online is not
 supported. Custom views and third-party list widgets are outside the scope of
 support.

@@ -8,6 +8,9 @@ import { ListRenderer } from "@web/views/list/list_renderer";
 import { arrangeColumns, getEligibleColumns } from "./column_layout";
 import { SmartLayoutsButton } from "./layout_button";
 
+// Odoo 17: narrowest width other columns are squeezed to when a layout widens one.
+const SMART_MIN_FLEX_WIDTH = 60;
+
 /**
  * Controller side: decides whether the Layouts control applies, owns the
  * (UI-only) layout state of this list and shares it with its renderer via
@@ -149,12 +152,25 @@ patch(ListRenderer.prototype, {
             ...this.tableRef.el.querySelectorAll("thead th:not(.o_list_actions_header)"),
         ];
         const offset = this.hasSelectors ? 1 : 0;
-        this.state.columns.forEach((column, index) => {
-            const th = headers[index + offset];
-            if (column.smartWidth && th) {
-                th.style.width = `${column.smartWidth}px`;
-            }
-        });
+        const cells = this.state.columns
+            .map((column, index) => ({ column, th: headers[index + offset] }))
+            .filter(({ th }) => th);
+        const widthOf = (th) => parseFloat(th.style.width) || th.getBoundingClientRect().width;
+        const fixed = cells.filter(({ column }) => column.smartWidth);
+        const flexible = cells.filter(({ column }) => !column.smartWidth);
+        // Keep the table as wide as Odoo made it: the other columns give (or
+        // take) the difference, in proportion to their size.
+        const delta = fixed.reduce((sum, { column, th }) => sum + column.smartWidth - widthOf(th), 0);
+        const flexibleTotal = flexible.reduce((sum, { th }) => sum + widthOf(th), 0);
+        fixed.forEach(({ column, th }) => (th.style.width = `${column.smartWidth}px`));
+        if (!flexibleTotal || !delta) {
+            return;
+        }
+        const ratio = delta / flexibleTotal;
+        for (const { th } of flexible) {
+            const width = widthOf(th);
+            th.style.width = `${Math.max(SMART_MIN_FLEX_WIDTH, Math.floor(width * (1 - ratio)))}px`;
+        }
     },
 
     get displayOptionalFields() {
