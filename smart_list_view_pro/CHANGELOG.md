@@ -1,5 +1,8 @@
 # Changelog
 
+## 18.0.1.0.0 (unreleased)
+- Port of 19.0.1.0.0 to Odoo 18.0 (same features and security rules).
+
 ## 19.0.1.0.0 (unreleased)
 - Milestone A: module skeleton, admin group, "Layouts" button with
   "List layouts" panel on top-level list views. The list template extension is
