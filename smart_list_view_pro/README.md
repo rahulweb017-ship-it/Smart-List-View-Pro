@@ -87,6 +87,8 @@ JS unit tests: open `/web/tests?filter=smart_list_view_pro` while logged in as a
 (the headless run needs the `websocket-client` Python package).
 
 ## Support
-TODO before publication: support contact, response time, supported Odoo
-versions per release, update policy and what is excluded (custom views,
-third-party list widgets, Odoo Online).
+Softdeviser · rahul@softdeviser.com · https://softdeviser.com
+
+This release supports Odoo 19.0 (self-hosted and Odoo.sh). Odoo Online is not
+supported. Custom views and third-party list widgets are outside the scope of
+support.
