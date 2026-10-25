@@ -32,7 +32,7 @@
             "smart_list_view_pro/static/tests/*.test.js",
         ],
     },
-    "images": ["static/description/screenshots/01_list_with_layout_applied.png"],
+    "images": ["static/description/banner.gif"],
     "installable": True,
     "application": False,
 }
