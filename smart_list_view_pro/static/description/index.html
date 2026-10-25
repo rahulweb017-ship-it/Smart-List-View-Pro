@@ -1,0 +1,172 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12 text-center">
+            <h2 class="oe_slogan" style="color:#115e59;">Smart List View Pro</h2>
+            <h3 class="oe_slogan">Save personal list layouts and publish team presets without modifying business records.</h3>
+            <p style="font-size:15px;">
+                Choose which columns a list shows, in which order and at which width — then save it
+                as a named layout you can apply in one click. Administrators can share a layout with
+                the whole team. Layouts only change what you see: no record, view or access right is modified.
+            </p>
+            <p style="font-size:13px; color:#555;">
+                Odoo 19 Community &amp; Enterprise · self-hosted or Odoo.sh · not available on Odoo Online
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <img class="img img-fluid oe_screenshot" style="border:1px solid #ddd;"
+                 src="screenshots/01_list_with_layout_applied.png"
+                 alt="Sales quotations list with a saved layout applied"/>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">What you can do</h3>
+        <div class="oe_span6">
+            <ul>
+                <li><b>Show or hide columns</b> the list already offers you.</li>
+                <li><b>Reorder columns</b> with keyboard-friendly up/down buttons.</li>
+                <li><b>Set column widths</b> from 80 to 600 px, or leave them automatic.</li>
+                <li><b>Save as new layout</b>, save changes, rename, duplicate and delete.</li>
+            </ul>
+        </div>
+        <div class="oe_span6">
+            <ul>
+                <li><b>Shared layouts</b>: administrators publish a layout for all internal users and unpublish it again.</li>
+                <li><b>Reset</b> returns to the standard Odoo columns at any time — saved layouts are kept.</li>
+                <li><b>One list at a time</b>: a layout belongs to the list (model, view and menu action) it was saved on.</li>
+                <li><b>Native list kept</b>: sorting, filters, grouping, pager, selection and editing work as before.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 class="oe_slogan">Arrange the columns of the list you are on</h3>
+            <p class="text-center">
+                The <b>Layouts</b> button sits next to the list's own controls. The panel lists the columns the
+                current view shows you, with their visibility, order and width.
+            </p>
+            <img class="img img-fluid oe_screenshot" style="border:1px solid #ddd;"
+                 src="screenshots/02_column_editor.png" alt="Layouts panel with the column editor"/>
+        </div>
+    </div>
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 class="oe_slogan">See every change live</h3>
+            <p class="text-center">
+                Changes apply to the list immediately and are marked as <i>Unsaved layout changes</i> until you
+                save them. Nothing is stored before you choose to.
+            </p>
+            <img class="img img-fluid oe_screenshot" style="border:1px solid #ddd;"
+                 src="screenshots/03_unsaved_changes.png" alt="Unsaved layout changes applied to the list"/>
+        </div>
+    </div>
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 class="oe_slogan">Save it under a name</h3>
+            <img class="img img-fluid oe_screenshot" style="border:1px solid #ddd;"
+                 src="screenshots/04_save_new_layout.png" alt="Saving a new layout"/>
+        </div>
+    </div>
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 class="oe_slogan">Personal and shared layouts</h3>
+            <p class="text-center">
+                <i>My layouts</i> are private to you. Layout administrators can publish one to
+                <i>Shared layouts</i> for every internal user of that list.
+            </p>
+            <img class="img img-fluid oe_screenshot" style="border:1px solid #ddd;"
+                 src="screenshots/05_saved_and_shared_layouts.png" alt="Personal and shared layouts in the panel"/>
+        </div>
+    </div>
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 class="oe_slogan">Team members apply shared layouts</h3>
+            <p class="text-center">
+                Other users can apply a shared layout or duplicate it into their own layouts, but cannot
+                change or remove it.
+            </p>
+            <img class="img img-fluid oe_screenshot" style="border:1px solid #ddd;"
+                 src="screenshots/06_team_layout_for_employees.png" alt="A sales user applying the shared layout"/>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3 class="oe_slogan">Permissions</h3>
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Own layouts</th>
+                        <th>Shared layouts</th>
+                        <th>Publish / unpublish</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Internal user</td>
+                        <td>Create, apply, rename, duplicate, delete</td>
+                        <td>Apply, duplicate as own</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td>Smart List Layouts Administrator (included in Settings administrators)</td>
+                        <td>Create, apply, rename, duplicate, delete</td>
+                        <td>Apply, rename, update, unpublish</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Portal and public users</td>
+                        <td colspan="3">No access</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                All checks run on the server, including direct API calls. A layout only ever contains columns of
+                the list it was saved on; columns a user is not allowed to read are never shown to them, and a
+                duplicated layout keeps only the columns the copying user may read.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6">
+            <h3>Good to know</h3>
+            <ul>
+                <li>Available on list views opened from a menu or action. Not shown in lists inside dialogs,
+                    one2many/many2many sub-lists or embedded lists.</li>
+                <li>Columns with buttons, special widgets, the drag handle, properties, and columns hidden by
+                    the view's own conditions stay under Odoo's control.</li>
+                <li>Columns cannot be edited while the list is grouped; remove the grouping first.</li>
+                <li>A layout is applied when you choose it. It is not re-applied automatically after a page reload.</li>
+                <li>If the view changes later, removed columns are skipped with a warning.</li>
+            </ul>
+        </div>
+        <div class="oe_span6">
+            <h3>Technical</h3>
+            <ul>
+                <li>Depends only on <code>base</code> and <code>web</code>.</li>
+                <li>No external service, no tracking, no data leaves your database.</li>
+                <li>Layouts are stored in a single model (<code>smart.list.preset</code>) with record rules;
+                    uninstalling the module removes them and leaves your records untouched.</li>
+                <li>Tested on Contacts, CRM and Sales lists of Odoo 19 Enterprise.</li>
+            </ul>
+            <h3>Support</h3>
+            <p>TODO: support email · response time · update policy</p>
+        </div>
+    </div>
+</section>

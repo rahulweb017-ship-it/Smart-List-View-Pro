@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!--
+        Loaded right after web's list_controller.xml (see manifest): primary
+        templates derived from web.ListView (e.g. crm_enterprise) only inherit
+        extensions registered before them in the bundle.
+    -->
+    <t t-inherit="web.ListView" t-inherit-mode="extension">
+        <xpath expr="//t[@t-set-slot='control-panel-additional-actions']/CogMenu[1]" position="before">
+            <t t-set="smartLayoutsInfo" t-value="!hasSelectedRecords and smartLayouts"/>
+            <t t-if="smartLayoutsInfo" t-component="smartLayoutsInfo.Component" t-props="smartLayoutsInfo.props"/>
+        </xpath>
+    </t>
+
+</templates>

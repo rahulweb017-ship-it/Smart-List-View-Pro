@@ -1,0 +1,30 @@
+.o_smart_list_popover .o_smart_list_panel {
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    max-height: 80vh;
+    overflow-y: auto;
+
+    .o_smart_list_columns {
+        max-height: 40vh;
+        overflow-y: auto;
+    }
+
+    .o_smart_list_column_label,
+    .o_smart_list_apply {
+        min-width: 0;
+    }
+
+    .o_smart_list_width {
+        width: 72px;
+        flex: 0 0 auto;
+    }
+}
+
+.o_smart_list_layouts_button .o_smart_list_modified_dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: $o-action;
+    vertical-align: middle;
+}

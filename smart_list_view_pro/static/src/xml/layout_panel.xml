@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="smart_list_view_pro.LayoutsButton">
+        <button type="button"
+                t-ref="button"
+                class="btn btn-secondary o_smart_list_layouts_button"
+                t-att-class="{ 'o_smart_list_modified': isModified }"
+                t-att-title="title"
+                aria-label="Layouts"
+                aria-haspopup="dialog"
+                t-att-aria-expanded="popover.isOpen ? 'true' : 'false'"
+                t-on-click="onClick">
+            <i class="fa fa-columns" aria-hidden="true"/>
+            <span class="d-none d-md-inline ms-1">Layouts</span>
+            <span t-if="isModified" class="o_smart_list_modified_dot ms-1" aria-hidden="true"/>
+            <span t-if="isModified" class="visually-hidden">Unsaved layout changes</span>
+        </button>
+    </t>
+
+    <t t-name="smart_list_view_pro.LayoutPanel">
+        <div class="o_smart_list_panel p-3" role="dialog" aria-labelledby="o_smart_list_panel_title" t-ref="root">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h5 id="o_smart_list_panel_title" class="mb-0">List layouts</h5>
+                <button type="button" class="btn-close" aria-label="Close" t-on-click="() => props.close()"/>
+            </div>
+            <div t-if="props.isGrouped" class="alert alert-info py-2 mb-2 o_smart_list_grouped_notice" role="status">
+                Layouts cannot be changed while the list is grouped. Remove the grouping to edit columns.
+            </div>
+            <section t-else="" class="o_smart_list_editor mb-3" aria-labelledby="o_smart_list_columns_title">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <h6 id="o_smart_list_columns_title" class="text-muted text-uppercase small mb-0">Columns</h6>
+                    <small class="text-muted">Width (px)</small>
+                </div>
+                <ul class="list-unstyled mb-0 o_smart_list_columns">
+                    <li t-foreach="rows" t-as="row" t-key="row.field"
+                        class="d-flex align-items-center gap-1 py-1 o_smart_list_column"
+                        t-att-data-field="row.field">
+                        <div class="form-check flex-grow-1 mb-0 o_smart_list_column_label">
+                            <input type="checkbox" class="form-check-input"
+                                   t-attf-id="o_smart_list_col_{{row.field}}"
+                                   t-att-checked="row.visible"
+                                   t-att-disabled="row.locked"
+                                   t-att-title="row.locked ? row.lockedLabel : undefined"
+                                   t-att-aria-label="row.showLabel"
+                                   t-on-change="(ev) => this.onToggle(row.field, ev.target.checked)"/>
+                            <label class="form-check-label text-truncate d-block" t-attf-for="o_smart_list_col_{{row.field}}" t-esc="row.label"/>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-light o_smart_list_move_up"
+                                t-att-disabled="row.isFirst"
+                                t-att-aria-label="row.moveUpLabel" t-att-title="row.moveUpLabel"
+                                t-on-click="() => this.onMove(row.field, row_index, -1)">
+                            <i class="fa fa-arrow-up" aria-hidden="true"/>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light o_smart_list_move_down"
+                                t-att-disabled="row.isLast"
+                                t-att-aria-label="row.moveDownLabel" t-att-title="row.moveDownLabel"
+                                t-on-click="() => this.onMove(row.field, row_index, 1)">
+                            <i class="fa fa-arrow-down" aria-hidden="true"/>
+                        </button>
+                        <input type="number" class="form-control form-control-sm o_smart_list_width"
+                               t-att-min="MIN_COLUMN_WIDTH" t-att-max="MAX_COLUMN_WIDTH" step="10"
+                               placeholder="Auto"
+                               t-att-value="row.width ?? ''"
+                               t-att-aria-label="row.widthLabel"
+                               t-on-change="(ev) => this.onWidthChange(row.field, ev)"/>
+                    </li>
+                </ul>
+                <p t-if="!rows.length" class="text-muted mb-0">This list has no columns that can be arranged.</p>
+            </section>
+
+            <div t-if="isModified" class="d-flex align-items-start gap-2 mb-3 o_smart_list_modified_notice" role="status">
+                <div class="flex-grow-1 small">
+                    <strong>Unsaved layout changes</strong>
+                    <div class="text-muted">They apply to this list until you leave it or reload the page.</div>
+                </div>
+                <div class="d-flex flex-column gap-1">
+                    <button t-if="appliedPreset and canEdit(appliedPreset)" type="button"
+                            class="btn btn-sm btn-primary o_smart_list_update"
+                            t-att-disabled="state.busy" t-on-click="onUpdateApplied">
+                        Save changes
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary o_smart_list_reset" t-on-click="onReset">Reset</button>
+                </div>
+            </div>
+            <div t-elif="applied" class="d-flex align-items-start gap-2 mb-3 o_smart_list_applied_notice" role="status">
+                <div class="flex-grow-1 small">
+                    Layout <strong t-esc="applied.name"/> is applied.
+                    <div class="text-muted">It is not applied again automatically after a reload.</div>
+                </div>
+                <button type="button" class="btn btn-sm btn-secondary o_smart_list_reset" t-on-click="onReset">Reset</button>
+            </div>
+
+            <div class="mb-3">
+                <div t-if="state.form and state.form.mode === 'new'" class="d-flex gap-1 o_smart_list_name_form">
+                    <input type="text" class="form-control form-control-sm o_smart_list_name_input"
+                           t-model="state.form.name" t-att-maxlength="NAME_MAX_LENGTH"
+                           placeholder="Layout name" aria-label="Layout name" t-ref="autofocus"
+                           t-on-keydown="onFormKeydown"/>
+                    <button type="button" class="btn btn-sm btn-primary o_smart_list_form_save"
+                            t-att-disabled="state.busy" t-on-click="onSubmitForm">Save</button>
+                    <button type="button" class="btn btn-sm btn-secondary o_smart_list_form_cancel"
+                            t-on-click="onCancelForm">Cancel</button>
+                </div>
+                <button t-else="" type="button" class="btn btn-sm btn-primary o_smart_list_save_new"
+                        t-att-disabled="state.busy or state.loading" t-on-click="onStartSaveNew">
+                    <i class="fa fa-floppy-o me-1" aria-hidden="true"/>Save as new layout
+                </button>
+            </div>
+
+            <section class="o_smart_list_section_personal mb-2" aria-labelledby="o_smart_list_personal_title" t-att-aria-busy="state.loading ? 'true' : 'false'">
+                <h6 id="o_smart_list_personal_title" class="text-muted text-uppercase small mb-1">My layouts</h6>
+                <p t-if="state.loading" class="text-muted mb-0">Loading…</p>
+                <p t-elif="!personalPresets.length" class="o_smart_list_empty mb-0">No saved layouts yet. Adjust the columns and save your first layout.</p>
+                <ul t-else="" class="list-unstyled mb-0">
+                    <t t-foreach="personalPresets" t-as="preset" t-key="preset.id">
+                        <t t-call="smart_list_view_pro.PresetItem"/>
+                    </t>
+                </ul>
+            </section>
+            <section class="o_smart_list_section_shared" aria-labelledby="o_smart_list_shared_title" t-att-aria-busy="state.loading ? 'true' : 'false'">
+                <h6 id="o_smart_list_shared_title" class="text-muted text-uppercase small mb-1">Shared layouts</h6>
+                <p t-if="state.loading" class="text-muted mb-0">Loading…</p>
+                <p t-elif="!sharedPresets.length" class="o_smart_list_shared_empty mb-0 text-muted">No shared layouts for this list.</p>
+                <ul t-else="" class="list-unstyled mb-0">
+                    <t t-foreach="sharedPresets" t-as="preset" t-key="preset.id">
+                        <t t-call="smart_list_view_pro.PresetItem"/>
+                    </t>
+                </ul>
+            </section>
+        </div>
+    </t>
+
+    <t t-name="smart_list_view_pro.PresetItem">
+        <li class="d-flex align-items-center gap-1 py-1 o_smart_list_preset" t-att-data-preset-id="preset.id">
+            <t t-if="state.form and state.form.mode === 'rename' and state.form.id === preset.id">
+                <input type="text" class="form-control form-control-sm o_smart_list_name_input"
+                       t-model="state.form.name" t-att-maxlength="NAME_MAX_LENGTH"
+                       aria-label="Layout name" t-ref="autofocus" t-on-keydown="onFormKeydown"/>
+                <button type="button" class="btn btn-sm btn-primary o_smart_list_form_save"
+                        t-att-disabled="state.busy" t-on-click="onSubmitForm">Save</button>
+                <button type="button" class="btn btn-sm btn-secondary o_smart_list_form_cancel"
+                        t-on-click="onCancelForm">Cancel</button>
+            </t>
+            <t t-elif="state.confirmDeleteId === preset.id">
+                <span class="flex-grow-1 small text-truncate">Delete <strong t-esc="preset.name"/>?</span>
+                <button type="button" class="btn btn-sm btn-danger o_smart_list_confirm_delete"
+                        t-att-disabled="state.busy" t-on-click="() => this.onConfirmDelete(preset)">Delete</button>
+                <button type="button" class="btn btn-sm btn-secondary o_smart_list_cancel_delete"
+                        t-on-click="onCancelDelete">Cancel</button>
+            </t>
+            <t t-else="">
+                <button type="button" class="btn btn-link btn-sm p-0 flex-grow-1 text-start text-truncate o_smart_list_apply"
+                        t-att-disabled="!preset.valid"
+                        t-att-aria-label="actionLabel('apply', preset)"
+                        t-on-click="() => this.onApply(preset)">
+                    <t t-esc="preset.name"/>
+                    <small t-if="!preset.valid" class="text-muted ms-1">(no longer applicable)</small>
+                </button>
+                <span t-if="isApplied(preset)" class="badge text-bg-light o_smart_list_applied_badge">Applied</span>
+                <t t-set="editable" t-value="canEdit(preset)"/>
+                <button t-if="editable" type="button" class="btn btn-sm btn-light o_smart_list_rename"
+                        t-att-disabled="state.busy" t-att-aria-label="actionLabel('rename', preset)"
+                        t-att-title="actionLabel('rename', preset)" t-on-click="() => this.onStartRename(preset)">
+                    <i class="fa fa-pencil" aria-hidden="true"/>
+                </button>
+                <button type="button" class="btn btn-sm btn-light o_smart_list_duplicate"
+                        t-att-disabled="state.busy or !preset.valid" t-att-aria-label="actionLabel('duplicate', preset)"
+                        t-att-title="actionLabel('duplicate', preset)" t-on-click="() => this.onDuplicate(preset)">
+                    <i class="fa fa-clone" aria-hidden="true"/>
+                </button>
+                <t t-if="preset.visibility === 'personal'">
+                    <button t-if="state.isAdmin" type="button" class="btn btn-sm btn-light o_smart_list_publish"
+                            t-att-disabled="state.busy or !preset.valid" t-att-aria-label="actionLabel('publish', preset)"
+                            t-att-title="actionLabel('publish', preset)" t-on-click="() => this.onPublish(preset)">
+                        <i class="fa fa-share-alt" aria-hidden="true"/>
+                    </button>
+                    <button t-if="editable" type="button" class="btn btn-sm btn-light o_smart_list_delete"
+                            t-att-disabled="state.busy" t-att-aria-label="actionLabel('delete', preset)"
+                            t-att-title="actionLabel('delete', preset)" t-on-click="() => this.onAskDelete(preset)">
+                        <i class="fa fa-trash" aria-hidden="true"/>
+                    </button>
+                </t>
+                <button t-elif="editable" type="button" class="btn btn-sm btn-light o_smart_list_unpublish"
+                        t-att-disabled="state.busy" t-att-aria-label="actionLabel('unpublish', preset)"
+                        t-att-title="actionLabel('unpublish', preset)" t-on-click="() => this.onUnpublish(preset)">
+                    <i class="fa fa-eye-slash" aria-hidden="true"/>
+                </button>
+            </t>
+        </li>
+    </t>
+
+</templates>

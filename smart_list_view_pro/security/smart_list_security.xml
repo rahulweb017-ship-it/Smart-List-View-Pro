@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_preset_admin" model="res.groups">
+        <field name="name">Smart List Layouts Administrator</field>
+        <field name="comment">Can publish, update and unpublish shared list layouts.</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="base.group_system" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('smart_list_view_pro.group_preset_admin'))]"/>
+    </record>
+
+    <!-- Rules of different groups are OR-ed: admins get the union of both. -->
+    <record id="rule_preset_user_read" model="ir.rule">
+        <field name="name">Smart list preset: read own or shared</field>
+        <field name="model_id" ref="model_smart_list_preset"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">['|', ('owner_id', '=', user.id), ('visibility', '=', 'shared')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_preset_user_modify_own" model="ir.rule">
+        <field name="name">Smart list preset: modify own personal</field>
+        <field name="model_id" ref="model_smart_list_preset"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('owner_id', '=', user.id), ('visibility', '=', 'personal')]</field>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_preset_admin_shared" model="ir.rule">
+        <field name="name">Smart list preset: administrators manage shared</field>
+        <field name="model_id" ref="model_smart_list_preset"/>
+        <field name="groups" eval="[(4, ref('smart_list_view_pro.group_preset_admin'))]"/>
+        <field name="domain_force">[('visibility', '=', 'shared')]</field>
+    </record>
+</odoo>

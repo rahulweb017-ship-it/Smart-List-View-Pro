@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+logs/
+
+# planning docs stay local
+CLAUDE_START_HERE.md
+Smart_List_View_Claude_Build_Plan.md
+Smart_List_View_Claude_Build_Plan.docx
