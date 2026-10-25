@@ -1,4 +1,4 @@
-import { reactive, useEffect, useState, useSubEnv } from "@odoo/owl";
+import { reactive, useState, useSubEnv } from "@odoo/owl";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { patch } from "@web/core/utils/patch";
 import { ListController } from "@web/views/list/list_controller";
@@ -88,20 +88,6 @@ patch(ListRenderer.prototype, {
         this.smartLayout =
             layout && layout.resModel === this.props.list.resModel ? useState(layout) : null;
         this.smartWidthCache = new Map();
-        if (this.smartLayout) {
-            let mounted = false;
-            useEffect(
-                () => {
-                    // Same column ids with new widths: the width hook keeps its frozen
-                    // widths unless asked to recompute them.
-                    if (mounted && this.constructor.useMagicColumnWidths) {
-                        this.columnWidths.resetWidths();
-                    }
-                    mounted = true;
-                },
-                () => [this.smartLayout.columns]
-            );
-        }
     },
 
     getActiveColumns() {
@@ -121,13 +107,21 @@ patch(ListRenderer.prototype, {
         );
     },
 
-    /** Stable copy of `column` with a fixed width (identity kept across renders). */
+    /**
+     * Stable copy of `column` with a fixed width (identity kept across renders).
+     * The id carries the width: the column width hook only recomputes its frozen
+     * widths when the column ids change.
+     */
     smartColumnWithWidth(column, width) {
         const cached = this.smartWidthCache.get(column.id);
         if (cached && cached.source === column && cached.width === width) {
             return cached.column;
         }
-        const copy = { ...column, attrs: { ...column.attrs, width: `${width}px` } };
+        const copy = {
+            ...column,
+            id: `${column.id}_w${width}`,
+            attrs: { ...column.attrs, width: `${width}px` },
+        };
         this.smartWidthCache.set(column.id, { source: column, width, column: copy });
         return copy;
     },

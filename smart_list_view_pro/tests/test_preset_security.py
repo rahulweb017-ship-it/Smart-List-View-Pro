@@ -12,7 +12,7 @@ class TestPresetSecurity(PresetCase):
 
     def test_admin_group_implied_by_system(self):
         admin_group = self.env.ref("smart_list_view_pro.group_preset_admin")
-        self.assertIn(admin_group, self.env.ref("base.group_system").all_implied_ids)
+        self.assertIn(admin_group, self.env.ref("base.group_system").trans_implied_ids)
         self.assertFalse(self.user_a.has_group("smart_list_view_pro.group_preset_admin"))
 
     def test_owner_is_forced_to_creator(self):
@@ -140,7 +140,7 @@ class TestPresetRpc(HttpCase):
             "name": "SLV RPC user",
             "login": "slv_rpc",
             "password": "slv_rpc_pwd",
-            "group_ids": [(6, 0, [self.env.ref("base.group_user").id])],
+            "groups_id": [(6, 0, [self.env.ref("base.group_user").id])],
         })
 
     def _call_kw(self, method, args, kwargs=None):
