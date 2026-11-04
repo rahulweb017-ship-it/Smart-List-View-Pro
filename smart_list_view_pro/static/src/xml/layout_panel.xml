@@ -151,19 +151,25 @@
                         t-on-click="onCancelDelete">Cancel</button>
             </t>
             <t t-else="">
-                <button type="button" class="btn btn-link btn-sm p-0 flex-grow-1 text-start text-truncate o_smart_list_apply"
-                        t-att-disabled="!preset.valid"
-                        t-att-aria-label="actionLabel('apply', preset)"
-                        t-on-click="() => this.onApply(preset)">
-                    <t t-esc="preset.name"/>
-                    <small t-if="!preset.valid" class="text-muted ms-1">(no longer applicable)</small>
-                </button>
-                <span t-if="preset.is_default" class="badge text-bg-warning o_smart_list_default_badge"
-                      t-att-title="preset.visibility === 'shared' ? 'Applied when a user without a default of their own opens this list' : 'Applied when you open this list'">
-                    <t t-if="preset.visibility === 'shared'">Team default</t>
-                    <t t-else="">Default</t>
-                </span>
-                <span t-if="isApplied(preset)" class="badge text-bg-light o_smart_list_applied_badge">Applied</span>
+                <div class="flex-grow-1 d-flex flex-column align-items-start o_smart_list_preset_label">
+                    <button type="button" class="btn btn-link btn-sm p-0 mw-100 text-start text-truncate o_smart_list_apply"
+                            t-att-disabled="!preset.valid"
+                            t-att-aria-label="actionLabel('apply', preset)"
+                            t-att-title="preset.name"
+                            t-on-click="() => this.onApply(preset)">
+                        <t t-esc="preset.name"/>
+                        <small t-if="!preset.valid" class="text-muted ms-1">(no longer applicable)</small>
+                    </button>
+                    <!-- Badges on their own line: the name and the actions keep their room. -->
+                    <div t-if="preset.is_default or isApplied(preset)" class="d-flex flex-wrap gap-1">
+                        <span t-if="preset.is_default" class="badge text-bg-warning o_smart_list_default_badge"
+                              t-att-title="preset.visibility === 'shared' ? 'Applied when a user without a default of their own opens this list' : 'Applied when you open this list'">
+                            <t t-if="preset.visibility === 'shared'">Team default</t>
+                            <t t-else="">Default</t>
+                        </span>
+                        <span t-if="isApplied(preset)" class="badge text-bg-light o_smart_list_applied_badge">Applied</span>
+                    </div>
+                </div>
                 <t t-set="editable" t-value="canEdit(preset)"/>
                 <button t-if="canSetDefault(preset)" type="button" class="btn btn-sm btn-light o_smart_list_default"
                         t-att-class="{ 'text-warning': preset.is_default }"

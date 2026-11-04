@@ -1,10 +1,10 @@
 <!-- Hero -->
 <section class="oe_container" style="padding:0;">
-    <div style="background:linear-gradient(135deg,#115e59 0%,#0c3f3c 100%); border-radius:18px; padding:48px 32px 40px; color:#fff; text-align:center;">
+    <div style="background-color:#115e59; border-radius:18px; padding:48px 32px 40px; color:#fff; text-align:center;">
         <div>
             <span style="display:inline-block; background:#f59e0b; color:#2a1e00; font-weight:700; font-size:13px; padding:5px 14px; border-radius:20px; margin:0 4px 8px;">Odoo 18</span>
-            <span style="display:inline-block; background:rgba(255,255,255,.15); color:#fff; font-weight:600; font-size:13px; padding:5px 14px; border-radius:20px; margin:0 4px 8px;">Community &amp; Enterprise</span>
-            <span style="display:inline-block; background:rgba(255,255,255,.15); color:#fff; font-weight:600; font-size:13px; padding:5px 14px; border-radius:20px; margin:0 4px 8px;">Self-hosted &amp; Odoo.sh</span>
+            <span style="display:inline-block; background-color:#1f7a73; color:#fff; font-weight:600; font-size:13px; padding:5px 14px; border-radius:20px; margin:0 4px 8px;">Community &amp; Enterprise</span>
+            <span style="display:inline-block; background-color:#1f7a73; color:#fff; font-weight:600; font-size:13px; padding:5px 14px; border-radius:20px; margin:0 4px 8px;">Self-hosted &amp; Odoo.sh</span>
         </div>
         <p style="color:#d6efec; font-size:20px; max-width:760px; margin:16px auto 26px; line-height:1.5;">
             Every user sees the list the way they work. Pick the columns, put them in order, set their widths,
@@ -203,29 +203,36 @@
     </div>
 
     <div style="border:1px solid #e5e7eb; border-radius:16px; padding:24px; margin-bottom:28px;">
-        <h3 style="color:#115e59; font-weight:700;"><span style="display:inline-block; width:38px; height:38px; line-height:38px; text-align:center; border-radius:50%; background:#f59e0b; color:#2a1e00; font-size:18px; margin-right:10px;">4</span>Share it with the team</h3>
-        <p style="color:#555;"><i>My layouts</i> are private to you. Layout administrators can publish one to
-            <i>Shared layouts</i> for every internal user of that list.</p>
-        <img class="img img-fluid" src="screenshots/05_saved_and_shared_layouts.png" alt="Personal and shared layouts in the panel"
+        <h3 style="color:#115e59; font-weight:700;"><span style="display:inline-block; width:38px; height:38px; line-height:38px; text-align:center; border-radius:50%; background:#f59e0b; color:#2a1e00; font-size:18px; margin-right:10px;">4</span>Star it as your default, share it with the team</h3>
+        <p style="color:#555;">Click the <b>&#9733;</b> next to a layout to make it your <b>default</b>. <i>My layouts</i> are private to you.
+            Layout administrators can publish a layout to <i>Shared layouts</i> and star it there as the
+            <b>team default</b>.</p>
+        <img class="img img-fluid" src="screenshots/05_saved_and_shared_layouts.png" alt="Personal default and team default layouts in the panel"
              style="border-radius:10px; border:1px solid #e5e7eb;"/>
     </div>
 
     <div style="border:1px solid #e5e7eb; border-radius:16px; padding:24px; margin-bottom:28px;">
-        <h3 style="color:#115e59; font-weight:700;"><span style="display:inline-block; width:38px; height:38px; line-height:38px; text-align:center; border-radius:50%; background:#f59e0b; color:#2a1e00; font-size:18px; margin-right:10px;">5</span>Team members apply it in one click</h3>
-        <p style="color:#555;">Other users can apply a shared layout or duplicate it into their own layouts, but cannot
-            change or remove it. Columns they are not allowed to read stay hidden.</p>
-        <img class="img img-fluid" src="screenshots/06_team_layout_for_employees.png" alt="A sales user applying the shared layout"
+        <h3 style="color:#115e59; font-weight:700;"><span style="display:inline-block; width:38px; height:38px; line-height:38px; text-align:center; border-radius:50%; background:#f59e0b; color:#2a1e00; font-size:18px; margin-right:10px;">5</span>The list opens that way every time</h3>
+        <p style="color:#555;">Close the browser, reload the page, come back tomorrow: the list opens with your default layout,
+            without a click. <b>Reset</b> brings back the standard columns at any time.</p>
+        <img class="img img-fluid" src="screenshots/07_default_after_reload.png" alt="The default layout applied automatically after a reload"
+             style="border-radius:10px; border:1px solid #e5e7eb;"/>
+    </div>
+
+    <div style="border:1px solid #e5e7eb; border-radius:16px; padding:24px; margin-bottom:28px;">
+        <h3 style="color:#115e59; font-weight:700;"><span style="display:inline-block; width:38px; height:38px; line-height:38px; text-align:center; border-radius:50%; background:#f59e0b; color:#2a1e00; font-size:18px; margin-right:10px;">6</span>Every user gets the team default</h3>
+        <p style="color:#555;">Users who have not starred a layout of their own get the team default when they open the list. They can
+            duplicate it into their own layouts, but cannot change or remove it. Columns they are not allowed to
+            read stay hidden.</p>
+        <img class="img img-fluid" src="screenshots/06_team_layout_for_employees.png" alt="A sales user with the team default applied"
              style="border-radius:10px; border:1px solid #e5e7eb;"/>
     </div>
 
     <div style="border:1px solid #e5e7eb; border-radius:16px; padding:24px;">
-        <h3 style="color:#115e59; font-weight:700;"><span style="display:inline-block; width:38px; height:38px; line-height:38px; text-align:center; border-radius:50%; background:#f59e0b; color:#2a1e00; font-size:18px; margin-right:10px;">6</span>Star it as default, then work as usual</h3>
-        <p style="color:#555;">Click the <b>&#9733;</b> next to a layout and the list opens with it every time, also after a
-            reload. Layout administrators can star a shared layout to make it the <b>team default</b> for everyone who
-            has not chosen their own.</p>
+        <h3 style="color:#115e59; font-weight:700;"><span style="display:inline-block; width:38px; height:38px; line-height:38px; text-align:center; border-radius:50%; background:#f59e0b; color:#2a1e00; font-size:18px; margin-right:10px;">7</span>Work as usual</h3>
         <p style="color:#555;">Sorting, filters, grouping, pager, selection and inline editing keep working exactly as before.
-            <b>Reset</b> brings back the standard columns at any time; your saved layouts are kept.</p>
-        <img class="img img-fluid" src="screenshots/01_list_with_layout_applied.png" alt="Sales quotations list with a saved layout applied"
+            Your saved layouts are kept when you reset.</p>
+        <img class="img img-fluid" src="screenshots/01_list_with_layout_applied.png" alt="Sales quotations list with the default layout applied"
              style="border-radius:10px; border:1px solid #e5e7eb;"/>
     </div>
 </section>
@@ -322,12 +329,12 @@
 
 <!-- Support -->
 <section class="oe_container" style="margin-top:44px; margin-bottom:20px;">
-    <div style="background:linear-gradient(135deg,#115e59 0%,#0c3f3c 100%); border-radius:18px; padding:36px 24px; text-align:center; color:#fff;">
+    <div style="background-color:#115e59; border-radius:18px; padding:36px 24px; text-align:center; color:#fff;">
         <h2 style="color:#fff; font-weight:800;">Need help?</h2>
         <p style="color:#d6efec; font-size:17px; margin-bottom:22px;">Questions, issues or ideas: write to us and we will get back to you.<br/>Free support and bug fixes included.</p>
         <a href="mailto:rahul@softdeviser.com" style="display:inline-block; background:#f59e0b; color:#2a1e00; font-weight:700; padding:12px 26px; border-radius:26px; text-decoration:none; margin:4px;">
             <i class="fa fa-envelope"></i>&#160; rahul@softdeviser.com</a>
-        <a href="https://softdeviser.com" style="display:inline-block; background:rgba(255,255,255,.15); color:#fff; font-weight:600; padding:12px 26px; border-radius:26px; text-decoration:none; margin:4px;">
+        <a href="https://softdeviser.com" style="display:inline-block; background-color:#1f7a73; color:#fff; font-weight:600; padding:12px 26px; border-radius:26px; text-decoration:none; margin:4px;">
             <i class="fa fa-globe"></i>&#160; softdeviser.com</a>
         <p style="color:#a7d4cf; font-size:13px; margin-top:20px;">by Softdeviser</p>
     </div>

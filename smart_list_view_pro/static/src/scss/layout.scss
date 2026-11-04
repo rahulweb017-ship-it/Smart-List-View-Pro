@@ -10,8 +10,13 @@
     }
 
     .o_smart_list_column_label,
+    .o_smart_list_preset_label,
     .o_smart_list_apply {
         min-width: 0;
+    }
+
+    .o_smart_list_preset > .btn {
+        flex: 0 0 auto;
     }
 
     .o_smart_list_width {
