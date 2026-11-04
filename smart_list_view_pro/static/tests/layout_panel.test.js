@@ -55,21 +55,58 @@ class SmartListPreset extends models.Model {
     layout_json = fields.Text();
     active = fields.Boolean({ default: true });
     owned = fields.Boolean({ default: true });
+    is_default = fields.Boolean({ default: false });
+
+    _clientInfo(preset) {
+        return {
+            id: preset.id,
+            name: preset.name,
+            visibility: preset.visibility,
+            is_owner: preset.owned,
+            is_default: preset.is_default,
+            columns: JSON.parse(preset.layout_json).columns,
+            skipped: 0,
+            valid: true,
+        };
+    }
 
     // View isolation is covered by the Python tests; mock views get generated ids.
     get_presets_for_list(modelName, viewRef, actionRef) {
         return this.search_read([
             ["model_name", "=", modelName],
             ["action_ref", "=", actionRef],
-        ]).map((preset) => ({
-            id: preset.id,
-            name: preset.name,
-            visibility: preset.visibility,
-            is_owner: preset.owned,
-            columns: JSON.parse(preset.layout_json).columns,
-            skipped: 0,
-            valid: true,
-        }));
+        ]).map((preset) => this._clientInfo(preset));
+    }
+
+    get_default_preset(modelName, viewRef, actionRef) {
+        const defaults = this.search_read([
+            ["model_name", "=", modelName],
+            ["action_ref", "=", actionRef],
+            ["is_default", "=", true],
+        ]);
+        const preset =
+            defaults.find((p) => p.visibility === "personal" && p.owned) ||
+            defaults.find((p) => p.visibility === "shared");
+        return preset ? this._clientInfo(preset) : false;
+    }
+
+    set_default([id]) {
+        const [preset] = this.search_read([["id", "=", id]]);
+        const siblings = this.search_read([
+            ["id", "!=", id],
+            ["model_name", "=", preset.model_name],
+            ["action_ref", "=", preset.action_ref],
+            ["visibility", "=", preset.visibility],
+            ["is_default", "=", true],
+        ]);
+        this.write(siblings.map((p) => p.id), { is_default: false });
+        this.write([id], { is_default: true });
+        return true;
+    }
+
+    clear_default(ids) {
+        this.write(ids, { is_default: false });
+        return true;
     }
 }
 
@@ -521,4 +558,67 @@ test("the locked last column explains why it cannot be hidden", async () => {
     expect(".o_smart_list_column[data-field=amount] input[type=checkbox]").not.toHaveAttribute(
         "title"
     );
+});
+
+test("the default layout is applied when the list opens", async () => {
+    SmartListPreset._records = [
+        presetRecord(1, "Plain", [{ field: "name", visible: true }]),
+        presetRecord(2, "Amount first", [{ field: "amount", visible: true }, { field: "name", visible: true }], {
+            is_default: true,
+        }),
+    ];
+    await mountView({ resModel: "foo", type: "list", arch: ARCH, config: ACTION_CONFIG });
+    expect(headerNames()).toEqual(["amount", "name"]);
+    expect(".o_smart_list_layouts_button .o_smart_list_modified_dot").toHaveCount(0);
+    await contains(".o_smart_list_layouts_button").click();
+    expect(`${presetItem("Amount first")} .o_smart_list_applied_badge`).toHaveCount(1);
+    expect(`${presetItem("Amount first")} .o_smart_list_default_badge`).toHaveText("Default");
+    expect(".o_smart_list_applied_notice").toHaveText(/applied automatically/);
+    // Reset still brings back the standard columns for this visit.
+    await contains(".o_smart_list_reset").click();
+    expect(headerNames()).toEqual(["name", "amount"]);
+});
+
+test("the team default applies unless the user has a default of their own", async () => {
+    onRpc("has_group", () => false);
+    SmartListPreset._records = [
+        presetRecord(1, "Team", [{ field: "amount", visible: true }], {
+            visibility: "shared",
+            owned: false,
+            is_default: true,
+        }),
+        presetRecord(2, "Mine", [{ field: "name", visible: true }]),
+    ];
+    await mountView({ resModel: "foo", type: "list", arch: ARCH, config: ACTION_CONFIG });
+    expect(headerNames()).toEqual(["amount", "name"]);
+    await contains(".o_smart_list_layouts_button").click();
+    expect(`${presetItem("Team")} .o_smart_list_default_badge`).toHaveText("Team default");
+    // Employees cannot change the team default, only their own.
+    expect(`${presetItem("Team")} .o_smart_list_default`).toHaveCount(0);
+    await contains(`${presetItem("Mine")} .o_smart_list_default`).click();
+    expect(serverPresets().find((r) => r.id === 2).is_default).toBe(true);
+    expect(`${presetItem("Mine")} .o_smart_list_default_badge`).toHaveText("Default");
+    expect(`${presetItem("Mine")} .o_smart_list_default`).toHaveAttribute("aria-pressed", "true");
+});
+
+test("starring a layout makes it the only default; starring again clears it", async () => {
+    SmartListPreset._records = [
+        presetRecord(1, "First", [{ field: "name", visible: true }], { is_default: true }),
+        presetRecord(2, "Second", [{ field: "amount", visible: true }]),
+    ];
+    await openPanel(ARCH);
+    await contains(`${presetItem("Second")} .o_smart_list_default`).click();
+    expect(serverPresets().map((r) => r.is_default)).toEqual([false, true]);
+    expect(".o_smart_list_default_badge").toHaveCount(1);
+    await contains(`${presetItem("Second")} .o_smart_list_default`).click();
+    expect(serverPresets().map((r) => r.is_default)).toEqual([false, false]);
+    expect(".o_smart_list_default_badge").toHaveCount(0);
+});
+
+test("a failing default lookup never blocks the list", async () => {
+    onRpc("smart.list.preset", "get_default_preset", () => {
+        throw new Error("boom");
+    });
+    await mountView({ resModel: "foo", type: "list", arch: ARCH, config: ACTION_CONFIG });
+    expect(headerNames()).toEqual(["name", "amount"]);
 });
