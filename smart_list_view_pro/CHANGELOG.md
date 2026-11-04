@@ -1,5 +1,10 @@
 # Changelog
 
+## 20.0.1.1.0
+- Port of 19.0.1.1.0 to Odoo 20.0 (same features and security rules).
+- Frontend moved to Owl 3: props declared with `useProps`, state in `proxy`,
+  refs with `signal.ref()`, templates read component members through `this.`.
+
 ## 19.0.1.1.0
 - Default layouts: star a personal layout to open the list with it every time
   (it survives reloads), or, as a layout administrator, star a shared layout to

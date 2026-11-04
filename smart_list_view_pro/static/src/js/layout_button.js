@@ -1,4 +1,4 @@
-import { Component, useRef, useState } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { isLayoutModified } from "./column_layout";
@@ -6,18 +6,21 @@ import { SmartLayoutPanel } from "./layout_panel";
 
 export class SmartLayoutsButton extends Component {
     static template = "smart_list_view_pro.LayoutsButton";
-    static props = {
-        resModel: String,
-        viewId: { type: [Number, Boolean] },
-        actionId: { type: [Number, Boolean] },
-        isGrouped: Boolean,
-        layout: Object,
-        getColumns: Function,
-    };
+    props = useProps({
+        resModel: t.string(),
+        viewId: t.or([t.number(), t.boolean()]),
+        actionId: t.or([t.number(), t.boolean()]),
+        isGrouped: t.boolean(),
+        layout: t.object(),
+        getColumns: t.function(),
+    });
+
+    buttonRef = signal.ref();
 
     setup() {
-        this.buttonRef = useRef("button");
-        this.layout = useState(this.props.layout);
+        // `layout` is a proxy owned by the list controller: reading it while
+        // rendering subscribes this button to its changes.
+        this.layout = this.props.layout;
         this.popover = usePopover(SmartLayoutPanel, {
             position: "bottom-end",
             popoverClass: "o_smart_list_popover",
@@ -25,7 +28,7 @@ export class SmartLayoutsButton extends Component {
                 // Give focus back unless the user moved it elsewhere (e.g. clicked an input).
                 const active = document.activeElement;
                 if (!active || active === document.body || active.closest(".o_smart_list_popover")) {
-                    this.buttonRef.el?.focus();
+                    this.buttonRef()?.focus();
                 }
             },
         });

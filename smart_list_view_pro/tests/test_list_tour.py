@@ -12,7 +12,7 @@ class TestSmartListTour(HttpCase):
     def test_contacts_list_tour(self):
         self._require("contacts")
         self.env["res.partner"].create([{"name": f"SLV Contact {i:03d}"} for i in range(90)])
-        self.start_tour("/odoo", "smart_list_view_pro_contacts", login="admin")
+        self.start_tour("/odoo/action-contacts.action_contacts", "smart_list_view_pro_contacts", login="admin")
 
     def test_crm_list_tour(self):
         self._require("crm")
@@ -23,7 +23,7 @@ class TestSmartListTour(HttpCase):
                 for i in range(90)
             ]
         )
-        self.start_tour("/odoo", "smart_list_view_pro_crm", login="admin")
+        self.start_tour("/odoo/action-crm.crm_lead_action_pipeline", "smart_list_view_pro_crm", login="admin")
 
     def test_sale_list_tour(self):
         self._require("sale_management")
@@ -32,7 +32,7 @@ class TestSmartListTour(HttpCase):
         self.env["sale.order"].create(
             [{"partner_id": partner.id, "user_id": admin.id} for _i in range(90)]
         )
-        self.start_tour("/odoo", "smart_list_view_pro_sale", login="admin")
+        self.start_tour("/odoo/action-sale.action_quotations_with_onboarding", "smart_list_view_pro_sale", login="admin")
 
 
 @tagged("post_install", "-at_install")
@@ -46,7 +46,7 @@ class TestPresetTours(HttpCase):
         Preset = self.env["smart.list.preset"].with_context(active_test=False)
         admin = self.env.ref("base.user_admin")
 
-        self.start_tour("/odoo", "smart_list_view_pro_presets_admin", login="admin")
+        self.start_tour("/odoo/action-contacts.action_contacts", "smart_list_view_pro_presets_admin", login="admin")
         mine = Preset.search([("owner_id", "=", admin.id), ("visibility", "=", "personal")])
         self.assertEqual(mine.mapped("name"), ["SLV Calls"])
         self.assertIn('"field":"email","visible":false', mine.layout_json)
@@ -54,7 +54,7 @@ class TestPresetTours(HttpCase):
         self.assertEqual(sorted(shared.mapped("active")), [False, True])
         self.assertTrue(all(p.view_key == mine.view_key for p in shared))
 
-        self.start_tour("/odoo", "smart_list_view_pro_presets_employee", login=employee.login)
+        self.start_tour("/odoo/action-contacts.action_contacts", "smart_list_view_pro_presets_employee", login=employee.login)
         copy = Preset.search([("owner_id", "=", employee.id)])
         self.assertEqual(copy.mapped("name"), ["SLV Calls (copy)"])
         self.assertEqual(copy.visibility, "personal")
@@ -64,7 +64,7 @@ class TestPresetTours(HttpCase):
     def test_default_layout_survives_reload(self):
         if self.env["ir.module.module"]._get("contacts").state != "installed":
             self.skipTest("contacts not installed")
-        self.start_tour("/odoo", "smart_list_view_pro_default_reload", login="admin")
+        self.start_tour("/odoo/action-contacts.action_contacts?view_type=list", "smart_list_view_pro_default_reload", login="admin")
         preset = self.env["smart.list.preset"].search([("name", "=", "SLV Default")])
         self.assertEqual(len(preset), 1)
         self.assertFalse(preset.is_default)

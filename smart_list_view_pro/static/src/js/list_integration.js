@@ -1,4 +1,5 @@
-import { onWillStart, reactive, useEffect, useState, useSubEnv } from "@odoo/owl";
+import { onWillStart, proxy } from "@odoo/owl";
+import { useLayoutEffect, useSubEnv } from "@web/owl2/utils";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { patch } from "@web/core/utils/patch";
 import { ListController } from "@web/views/list/list_controller";
@@ -19,7 +20,7 @@ patch(ListController.prototype, {
         this.smartLayout = null;
         if (this.smartLayoutsEligible) {
             // `columns: null` means native Odoo behaviour.
-            this.smartLayout = reactive({
+            this.smartLayout = proxy({
                 resModel: this.props.resModel,
                 columns: null,
                 applied: null, // { id, name, columns } of the last applied or saved layout
@@ -62,7 +63,8 @@ patch(ListController.prototype, {
         const config = this.env.config || {};
         return Boolean(
             !this.env.inDialog &&
-                this.props.showButtons &&
+                // Odoo 20 has no showButtons prop: lists embedded without a control panel are skipped.
+                Boolean(this.props.display?.controlPanel) &&
                 config.actionType === "ir.actions.act_window" &&
                 config.viewType === "list"
         );
@@ -114,16 +116,16 @@ patch(ListRenderer.prototype, {
     setup() {
         super.setup(...arguments);
         const layout = this.env.smartListLayout;
-        this.smartLayout =
-            layout && layout.resModel === this.props.list.resModel ? useState(layout) : null;
+        // A proxy: reading it while rendering subscribes the renderer to it.
+        this.smartLayout = layout && layout.resModel === this.props.list.resModel ? layout : null;
         this.smartWidthCache = new Map();
         if (this.smartLayout) {
             let mounted = false;
-            useEffect(
+            useLayoutEffect(
                 () => {
                     // Same column ids with new widths: the width hook keeps its frozen
                     // widths unless asked to recompute them.
-                    if (mounted && this.constructor.useMagicColumnWidths) {
+                    if (mounted && this.useMagicColumnWidths) {
                         this.columnWidths.resetWidths();
                     }
                     mounted = true;

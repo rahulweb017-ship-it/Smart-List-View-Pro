@@ -1,7 +1,7 @@
 {
     "name": "Smart List View Pro",
     "summary": "List view manager: hide, reorder and resize columns, save layouts and set personal or team default list views.",
-    "version": "19.0.1.1.0",
+    "version": "20.0.1.1.0",
     "category": "Productivity",
     "author": "Softdeviser",
     "website": "https://softdeviser.com",
@@ -12,7 +12,7 @@
     "depends": ["base", "web"],
     "data": [
         "security/smart_list_security.xml",
-        "security/ir.model.access.csv",
+        "security/ir.access.csv",
     ],
     "assets": {
         "web.assets_backend": [

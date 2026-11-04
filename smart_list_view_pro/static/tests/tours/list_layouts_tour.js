@@ -49,12 +49,12 @@ function listLayoutsSteps({ first, second, resize }) {
         { trigger: "body:not(:has(.o_smart_list_panel))" },
         // Native sorting, both directions.
         { trigger: "thead th.o_column_sortable[data-name]:first", run: "click" },
-        { trigger: "thead .o_list_sortable_icon.fa-sort-asc, thead .o_list_sortable_icon.fa-sort-desc" },
+        { trigger: "thead .o_list_sortable_icon[data-icon=arrow_upward], thead .o_list_sortable_icon[data-icon=arrow_downward]" },
         {
-            trigger: "thead th.o_column_sortable[data-name]:has(.fa-sort-asc, .fa-sort-desc)",
+            trigger: "thead th.o_column_sortable[data-name]:has([data-icon=arrow_upward], [data-icon=arrow_downward])",
             run: "click",
         },
-        { trigger: "thead .o_list_sortable_icon.fa-sort-asc, thead .o_list_sortable_icon.fa-sort-desc" },
+        { trigger: "thead .o_list_sortable_icon[data-icon=arrow_upward], thead .o_list_sortable_icon[data-icon=arrow_downward]" },
         // Native pager.
         { trigger: ".o_pager_next:enabled", run: "click" },
         { trigger: ".o_pager_value:contains(81-)" },
@@ -76,7 +76,7 @@ function listLayoutsSteps({ first, second, resize }) {
 
 registry.category("web_tour.tours").add("smart_list_view_pro_contacts", {
     url: "/odoo/action-contacts.action_contacts",
-    steps: () => listLayoutsSteps({ first: "email", second: "phone", resize: "display_name" }),
+    steps: () => listLayoutsSteps({ first: "email", second: "phone", resize: "complete_name" }),
 });
 
 registry.category("web_tour.tours").add("smart_list_view_pro_crm", {
@@ -86,7 +86,7 @@ registry.category("web_tour.tours").add("smart_list_view_pro_crm", {
 
 registry.category("web_tour.tours").add("smart_list_view_pro_sale", {
     url: "/odoo/action-sale.action_quotations_with_onboarding",
-    steps: () => listLayoutsSteps({ first: "partner_id", second: "user_id", resize: "name" }),
+    steps: () => listLayoutsSteps({ first: "commitment_date", second: "partner_id", resize: "name" }),
 });
 
 const personal = ".o_smart_list_section_personal";
@@ -123,14 +123,15 @@ registry.category("web_tour.tours").add("smart_list_view_pro_presets_admin", {
         { trigger: `${personal} .o_smart_list_apply:contains(copy)` },
         { trigger: `${personal} .o_smart_list_preset:has(.o_smart_list_apply:contains(copy)) .o_smart_list_delete`, run: "click" },
         { trigger: `${personal} .o_smart_list_confirm_delete`, run: "click" },
-        { trigger: `${personal}:not(:has(.o_smart_list_apply:contains(copy)))` },
+        // The confirm row hides the name at once: wait for the delete itself to finish.
+        { trigger: `${personal}:not(:has(.o_smart_list_confirm_delete)):not(:has(.o_smart_list_apply:contains(copy)))` },
         // Publish, unpublish, publish again.
         { trigger: `${shared} .o_smart_list_shared_empty` },
-        { trigger: `${personal} .o_smart_list_publish`, run: "click" },
+        { trigger: `${personal} .o_smart_list_publish:enabled`, run: "click" },
         { trigger: `${shared} .o_smart_list_apply:contains(SLV Calls)` },
         { trigger: `${shared} .o_smart_list_unpublish`, run: "click" },
         { trigger: `${shared} .o_smart_list_shared_empty` },
-        { trigger: `${personal} .o_smart_list_publish`, run: "click" },
+        { trigger: `${personal} .o_smart_list_publish:enabled`, run: "click" },
         { trigger: `${shared} .o_smart_list_apply:contains(SLV Calls)` },
         { trigger: ".o_smart_list_panel .btn-close", run: "click" },
         { trigger: "body:not(:has(.o_smart_list_panel))" },

@@ -210,7 +210,7 @@ test("editor lists eligible view columns only, with native visibility", async ()
 test("hiding, showing and resetting columns updates the live list", async () => {
     await openPanel();
     expect(headerNames()).toEqual(["name", "button", "amount"]);
-    expect(".o_optional_columns_dropdown").toHaveCount(1);
+    expect(".o_optional_columns_dropdown_toggle").toHaveCount(1);
 
     await contains(".o_smart_list_column[data-field=amount] input[type=checkbox]").click();
     // The button stays next to the column that precedes it in the arch.
@@ -218,7 +218,7 @@ test("hiding, showing and resetting columns updates the live list", async () => 
     expect(".o_smart_list_modified_notice").toHaveCount(1);
     expect(".o_smart_list_layouts_button .o_smart_list_modified_dot").toHaveCount(1);
     // The panel is the single column control while a layout is active.
-    expect(".o_optional_columns_dropdown").toHaveCount(0);
+    expect(".o_optional_columns_dropdown_toggle").toHaveCount(0);
 
     await contains(".o_smart_list_column[data-field=note] input[type=checkbox]").click();
     expect(headerNames()).toEqual(["name", "button", "note"]);
@@ -226,7 +226,7 @@ test("hiding, showing and resetting columns updates the live list", async () => 
     await contains(".o_smart_list_reset").click();
     expect(headerNames()).toEqual(["name", "button", "amount"]);
     expect(".o_smart_list_modified_notice").toHaveCount(0);
-    expect(".o_optional_columns_dropdown").toHaveCount(1);
+    expect(".o_optional_columns_dropdown_toggle").toHaveCount(1);
 });
 
 test("the last visible column cannot be hidden", async () => {

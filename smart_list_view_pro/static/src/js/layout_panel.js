@@ -1,4 +1,4 @@
-import { Component, onMounted, onPatched, useRef, useState } from "@odoo/owl";
+import { Component, onMounted, onPatched, proxy, signal, t, useProps } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { RPCError } from "@web/core/network/rpc";
 import { user } from "@web/core/user";
@@ -22,15 +22,18 @@ export const NAME_MAX_LENGTH = 80;
 
 export class SmartLayoutPanel extends Component {
     static template = "smart_list_view_pro.LayoutPanel";
-    static props = {
-        close: Function,
-        resModel: String,
-        viewRef: Number,
-        actionRef: Number,
-        isGrouped: Boolean,
-        layout: Object,
-        getColumns: Function,
-    };
+    props = useProps({
+        close: t.function(),
+        resModel: t.string(),
+        viewRef: t.number(),
+        actionRef: t.number(),
+        isGrouped: t.boolean(),
+        layout: t.object(),
+        getColumns: t.function(),
+    });
+
+    rootRef = signal.ref();
+    autofocusRef = signal.ref();
 
     setup() {
         this.MIN_COLUMN_WIDTH = MIN_COLUMN_WIDTH;
@@ -40,10 +43,10 @@ export class SmartLayoutPanel extends Component {
         // so a slow answer can never be applied to another list.
         this.orm = useService("orm");
         this.notification = useService("notification");
-        this.rootRef = useRef("root");
-        useAutofocus(); // the name input of the save/rename form
-        this.layout = useState(this.props.layout);
-        this.state = useState({
+        useAutofocus({ ref: this.autofocusRef }); // the name input of the save/rename form
+        // A proxy owned by the list controller, shared with the list renderer.
+        this.layout = this.props.layout;
+        this.state = proxy({
             loading: true,
             loadFailed: false,
             presets: [],
@@ -64,7 +67,7 @@ export class SmartLayoutPanel extends Component {
 
     /** First column control, else "Save as new layout", else Close. */
     focusFirst() {
-        const root = this.rootRef.el;
+        const root = this.rootRef();
         const target = [
             ".o_smart_list_column input:not(:disabled)",
             ".o_smart_list_save_new:not(:disabled)",
@@ -141,7 +144,10 @@ export class SmartLayoutPanel extends Component {
     }
 
     restoreFocus() {
-        const root = this.rootRef.el;
+        const root = this.rootRef();
+        if (!root) {
+            return;
+        }
         if (this.focusTarget) {
             const wanted = this.focusTarget;
             const target = typeof wanted === "string" ? root.querySelector(wanted) : wanted;
@@ -291,7 +297,7 @@ export class SmartLayoutPanel extends Component {
             this.showError(error);
         } finally {
             this.state.busy = false;
-            if (!this.focusTarget && this.rootRef.el?.contains(trigger)) {
+            if (!this.focusTarget && this.rootRef()?.contains(trigger)) {
                 this.focusLater(trigger);
             }
         }
@@ -373,6 +379,10 @@ export class SmartLayoutPanel extends Component {
                 ? this.presetSelector(form.id, ".o_smart_list_rename")
                 : ".o_smart_list_save_new"
         );
+    }
+
+    onNameInput(ev) {
+        this.state.form.name = ev.target.value;
     }
 
     onFormKeydown(ev) {

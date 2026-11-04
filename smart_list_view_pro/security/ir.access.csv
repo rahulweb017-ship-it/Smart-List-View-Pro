@@ -1,0 +1,4 @@
+id,name,model_id,group_id/id,operation,domain
+access_smart_list_preset_user_read,Smart list preset: read own or shared,smart.list.preset,base.group_user,r,"['|', ('owner_id', '=', user.id), ('visibility', '=', 'shared')]"
+access_smart_list_preset_user_modify_own,Smart list preset: modify own personal,smart.list.preset,base.group_user,cud,"[('owner_id', '=', user.id), ('visibility', '=', 'personal')]"
+access_smart_list_preset_admin_shared,Smart list preset: administrators manage shared,smart.list.preset,smart_list_view_pro.group_preset_admin,crud,"[('visibility', '=', 'shared')]"
