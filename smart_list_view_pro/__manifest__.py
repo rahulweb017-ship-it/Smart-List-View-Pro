@@ -1,13 +1,13 @@
 {
     "name": "Smart List View Pro",
-    "summary": "Save personal list layouts and publish team presets without modifying business records.",
-    "version": "17.0.1.0.0",
+    "summary": "List view manager: hide, reorder and resize columns, save layouts and set personal or team default list views.",
+    "version": "17.0.1.1.0",
     "category": "Productivity",
     "author": "Softdeviser",
     "website": "https://softdeviser.com",
     "support": "rahul@softdeviser.com",
     "license": "OPL-1",
-    "price": 79.0,
+    "price": 39.0,
     "currency": "USD",
     "depends": ["base", "web"],
     "data": [

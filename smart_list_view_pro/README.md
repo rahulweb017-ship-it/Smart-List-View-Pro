@@ -7,8 +7,15 @@ of the current list (show/hide, move up/down, width 80–600 px) and saves them
 as named layouts: save as new, save changes, apply, rename, duplicate, delete,
 and — for layout administrators — publish to / unpublish from "Shared layouts".
 Reset always returns to native Odoo columns without deleting anything.
-A layout is applied when you choose it; it is not re-applied automatically
-after a reload (automatic defaults are a planned P1 feature).
+
+## Default layouts
+- Star (★) one of your layouts to open the list with it every time, including
+  after a reload. Star it again to go back to the standard columns.
+- Layout administrators can star a shared layout: it becomes the **team
+  default**, applied for every internal user who has no default of their own.
+- Order on opening a list: your default, then the team default, then Odoo's
+  standard columns. A default that no longer fits the view is skipped.
+- Unpublishing a shared layout also removes it as team default.
 
 ## Column editor
 - Offers only plain field columns the current view already renders for this

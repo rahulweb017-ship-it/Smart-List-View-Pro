@@ -173,7 +173,8 @@ class TestPresetListing(PresetCase):
         [entry] = [p for p in self.preset_model(self.user_a).get_presets_for_list("res.partner")
                    if p["id"] == shared.id]
         self.assertEqual(
-            set(entry), {"id", "name", "visibility", "is_owner", "columns", "skipped", "valid"}
+            set(entry),
+            {"id", "name", "visibility", "is_owner", "is_default", "columns", "skipped", "valid"},
         )
         self.assertFalse(entry["is_owner"])
         self.assertEqual(entry["visibility"], "shared")
@@ -216,3 +217,94 @@ class TestPresetListing(PresetCase):
             self.preset_model(self.user_a).get_presets_for_list("ir.ui.view")
         with self.assertRaises(ValidationError):
             self.preset_model(self.user_a).get_presets_for_list("res.partner", -1)
+
+
+@tagged("post_install", "-at_install")
+class TestPresetDefaults(PresetCase):
+    """Default layouts: one per user and list, one team default per list."""
+
+    def default_id(self, user, *args):
+        info = self.preset_model(user).get_default_preset("res.partner", *args)
+        return info and info["id"]
+
+    def test_no_default_by_default(self):
+        self.make(self.user_a)
+        self.assertFalse(self.default_id(self.user_a))
+
+    def test_personal_default_is_returned_with_columns(self):
+        preset = self.make(self.user_a)
+        preset.with_user(self.user_a).set_default()
+        info = self.preset_model(self.user_a).get_default_preset("res.partner")
+        self.assertEqual(info["id"], preset.id)
+        self.assertTrue(info["is_default"])
+        self.assertEqual([c["field"] for c in info["columns"]], ["name", "email", "phone"])
+        # Someone else's default never applies to me.
+        self.assertFalse(self.default_id(self.user_b))
+
+    def test_set_default_replaces_previous_one(self):
+        first = self.make(self.user_a, name="First")
+        second = self.make(self.user_a, name="Second")
+        first.with_user(self.user_a).set_default()
+        second.with_user(self.user_a).set_default()
+        self.assertFalse(first.is_default)
+        self.assertTrue(second.is_default)
+        self.assertEqual(self.default_id(self.user_a), second.id)
+
+    def test_defaults_are_per_user_and_per_list(self):
+        mine = self.make(self.user_a)
+        theirs = self.make(self.user_b)
+        other_list = self.make(self.user_a, action_ref=7)
+        for preset, user in ((mine, self.user_a), (theirs, self.user_b), (other_list, self.user_a)):
+            preset.with_user(user).set_default()
+        self.assertTrue(mine.is_default and theirs.is_default and other_list.is_default)
+        self.assertEqual(self.default_id(self.user_a), mine.id)
+        self.assertEqual(self.default_id(self.user_a, 0, 7), other_list.id)
+
+    def test_personal_default_wins_over_team_default(self):
+        team = self.make(self.layout_admin, name="Team", visibility="shared")
+        team.with_user(self.layout_admin).set_default()
+        self.assertEqual(self.default_id(self.user_a), team.id)
+        mine = self.make(self.user_a)
+        mine.with_user(self.user_a).set_default()
+        self.assertEqual(self.default_id(self.user_a), mine.id)
+        mine.with_user(self.user_a).clear_default()
+        self.assertEqual(self.default_id(self.user_a), team.id)
+
+    def test_invalid_default_falls_back_to_team_default(self):
+        team = self.make(self.layout_admin, name="Team", visibility="shared")
+        team.with_user(self.layout_admin).set_default()
+        mine = self.make(self.user_a)
+        mine.with_user(self.user_a).set_default()
+        self.env.cr.execute(
+            "UPDATE smart_list_preset SET layout_json = %s WHERE id = %s",
+            (layout(("x_gone", True), ("email", False)), mine.id),
+        )
+        mine.invalidate_recordset()
+        self.assertEqual(self.default_id(self.user_a), team.id)
+
+    def test_unpublishing_clears_team_default(self):
+        team = self.make(self.layout_admin, name="Team", visibility="shared")
+        team.with_user(self.layout_admin).set_default()
+        team.with_user(self.layout_admin).write({"active": False})
+        self.assertFalse(team.is_default)
+        self.assertFalse(self.default_id(self.user_a))
+        with self.assertRaises(ValidationError):
+            team.with_user(self.layout_admin).set_default()
+
+    def test_copy_is_not_default(self):
+        preset = self.make(self.user_a)
+        preset.with_user(self.user_a).set_default()
+        copy = preset.with_user(self.user_a).copy()
+        self.assertFalse(copy.is_default)
+
+    def test_default_unique_indexes(self):
+        first = self.make(self.user_a, name="First")
+        second = self.make(self.user_a, name="Second")
+        first.with_user(self.user_a).set_default()
+        with mute_logger("odoo.sql_db"), self.assertRaises(IntegrityError), self.env.cr.savepoint():
+            second.with_user(self.user_a).write({"is_default": True})
+        team_1 = self.make(self.layout_admin, name="Team 1", visibility="shared")
+        team_2 = self.make(self.layout_admin, name="Team 2", visibility="shared")
+        team_1.with_user(self.layout_admin).set_default()
+        with mute_logger("odoo.sql_db"), self.assertRaises(IntegrityError), self.env.cr.savepoint():
+            team_2.with_user(self.layout_admin).write({"is_default": True})

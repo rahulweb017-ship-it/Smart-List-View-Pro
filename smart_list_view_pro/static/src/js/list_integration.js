@@ -1,8 +1,9 @@
 /** @odoo-module **/
 
-import { markRaw, reactive, useEffect, useState, useSubEnv } from "@odoo/owl";
+import { markRaw, onWillStart, reactive, useEffect, useState, useSubEnv } from "@odoo/owl";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { patch } from "@web/core/utils/patch";
+import { useService } from "@web/core/utils/hooks";
 import { ListController } from "@web/views/list/list_controller";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { arrangeColumns, getEligibleColumns } from "./column_layout";
@@ -32,7 +33,37 @@ patch(ListController.prototype, {
             // Odoo 17: the renderer, not the controller, knows the active optional columns.
             this.smartHooks = markRaw({ getOptionalActiveFields: null });
             useSubEnv({ smartListLayout: this.smartLayout, smartListHooks: this.smartHooks });
+            this.smartOrm = useService("orm");
             this.getSmartLayoutColumns = this.getSmartLayoutColumns.bind(this);
+            // Fetched alongside the records, so the default layout is there on
+            // the first render (no flash of the standard columns).
+            onWillStart(() => this.loadSmartDefaultLayout());
+        }
+    },
+
+    /**
+     * Apply the user's default layout of this list, else the team default.
+     * The stored entries are applied as they are: columns the view no longer
+     * offers are ignored and new ones keep their native visibility.
+     * A failure never blocks the list, which then shows the standard columns.
+     */
+    async loadSmartDefaultLayout() {
+        const config = this.env.config;
+        let preset;
+        try {
+            preset = await this.smartOrm.call("smart.list.preset", "get_default_preset", [
+                this.props.resModel,
+                config.viewId || 0,
+                config.actionId || 0,
+            ]);
+        } catch (error) {
+            // Includes network errors: the list must open whatever happens here.
+            console.warn("Smart List View Pro: default layout not loaded", error);
+            return;
+        }
+        if (preset && preset.valid && preset.columns.length && this.smartLayout.columns === null) {
+            this.smartLayout.columns = preset.columns;
+            this.smartLayout.applied = { id: preset.id, name: preset.name, columns: preset.columns };
         }
     },
 
@@ -98,6 +129,12 @@ patch(ListRenderer.prototype, {
         this.smartWidthCache = new Map();
         if (this.smartLayout) {
             this.env.smartListHooks.getOptionalActiveFields = () => this.optionalActiveFields;
+            if (this.smartLayout.columns) {
+                // A default layout loaded before this renderer: super.setup()
+                // computed the columns before this.smartLayout existed.
+                this.state.columns = this.getActiveColumns(this.props.list);
+                this.withHandleColumn = this.state.columns.some((col) => col.widget === "handle");
+            }
             // Odoo 17 keeps the active columns in state: refresh them when the
             // layout changes, and let the widths be computed again.
             let mounted = false;

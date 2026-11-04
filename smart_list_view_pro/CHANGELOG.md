@@ -1,5 +1,17 @@
 # Changelog
 
+## 17.0.1.1.0
+- Default layouts: star a personal layout to open the list with it every time
+  (it survives reloads), or, as a layout administrator, star a shared layout to
+  make it the team default. Personal default > team default > standard columns.
+  Server: `is_default` with one default per user and list and one team default
+  per list (unique indexes), `set_default()` / `clear_default()` (same access
+  rules as editing the layout), `get_default_preset()`; unpublishing clears the
+  team default. The list fetches the default while it loads its records, so
+  there is no flash of the standard columns; a failed lookup never blocks it.
+- Tours no longer click the view switcher when the list is already shown
+  (Odoo reloads the list then, and the tour could act on the old one).
+
 ## 17.0.1.0.0 (unreleased)
 - Port of 19.0.1.0.0 to Odoo 17.0 (same features and security rules).
 - Odoo 17 widths: other columns make room so the list never overflows sideways.
