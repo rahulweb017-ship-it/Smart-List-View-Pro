@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0+e-20260605\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-25 15:54+0000\n"
-"PO-Revision-Date: 2026-10-25 15:54+0000\n"
+"POT-Creation-Date: 2026-11-03 22:04+0000\n"
+"PO-Revision-Date: 2026-11-03 22:04+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -100,6 +100,12 @@ msgid "Active"
 msgstr ""
 
 #. module: smart_list_view_pro
+#. odoo-python
+#: code:addons/smart_list_view_pro/models/smart_list_preset.py:0
+msgid "An archived layout cannot be a default."
+msgstr ""
+
+#. module: smart_list_view_pro
 #. odoo-javascript
 #: code:addons/smart_list_view_pro/static/src/xml/layout_panel.xml:0
 msgid "Applied"
@@ -143,6 +149,12 @@ msgstr ""
 #. module: smart_list_view_pro
 #. odoo-javascript
 #: code:addons/smart_list_view_pro/static/src/xml/layout_panel.xml:0
+msgid "Click the star to apply it every time this list opens."
+msgstr ""
+
+#. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/xml/layout_panel.xml:0
 msgid "Close"
 msgstr ""
 
@@ -172,6 +184,13 @@ msgstr ""
 #. module: smart_list_view_pro
 #: model:ir.model.fields,field_description:smart_list_view_pro.field_smart_list_preset__create_date
 msgid "Created on"
+msgstr ""
+
+#. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/xml/layout_panel.xml:0
+#: model:ir.model.fields,field_description:smart_list_view_pro.field_smart_list_preset__is_default
+msgid "Default"
 msgstr ""
 
 #. module: smart_list_view_pro
@@ -211,7 +230,7 @@ msgstr ""
 #. module: smart_list_view_pro
 #. odoo-javascript
 #: code:addons/smart_list_view_pro/static/src/xml/layout_panel.xml:0
-msgid "It is not applied again automatically after a reload."
+msgid "It is applied automatically when this list opens."
 msgstr ""
 
 #. module: smart_list_view_pro
@@ -370,6 +389,18 @@ msgid "Only layout administrators can publish shared layouts."
 msgstr ""
 
 #. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/js/layout_panel.js:0
+msgid "Open this list with %s every time"
+msgstr ""
+
+#. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/js/layout_panel.js:0
+msgid "Open this list with %s for every user without a default of their own"
+msgstr ""
+
+#. module: smart_list_view_pro
 #: model:ir.model.fields,field_description:smart_list_view_pro.field_smart_list_preset__owner_id
 msgid "Owner"
 msgstr ""
@@ -449,6 +480,18 @@ msgid "Smart List Layouts Administrator"
 msgstr ""
 
 #. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/js/layout_panel.js:0
+msgid "Stop opening this list with %s"
+msgstr ""
+
+#. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/xml/layout_panel.xml:0
+msgid "Team default"
+msgstr ""
+
+#. module: smart_list_view_pro
 #. odoo-python
 #: code:addons/smart_list_view_pro/models/smart_list_preset.py:0
 msgid "The layout has an unexpected structure."
@@ -482,6 +525,11 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/smart_list_view_pro/static/src/xml/layout_panel.xml:0
 msgid "They apply to this list until you leave it or reload the page."
+msgstr ""
+
+#. module: smart_list_view_pro
+#: model:ir.model.constraint,message:smart_list_view_pro.constraint_smart_list_preset_shared_default_unique
+msgid "This list already has a team default layout."
 msgstr ""
 
 #. module: smart_list_view_pro
@@ -553,6 +601,11 @@ msgid "Window Action ID"
 msgstr ""
 
 #. module: smart_list_view_pro
+#: model:ir.model.constraint,message:smart_list_view_pro.constraint_smart_list_preset_personal_default_unique
+msgid "You already have a default layout for this list."
+msgstr ""
+
+#. module: smart_list_view_pro
 #. odoo-python
 #: code:addons/smart_list_view_pro/models/smart_list_preset.py:0
 msgid "You already have a layout named “%s” for this list."
@@ -596,6 +649,12 @@ msgstr ""
 #. module: smart_list_view_pro
 #. odoo-javascript
 #: code:addons/smart_list_view_pro/static/src/js/layout_panel.js:0
+msgid "“%s” is no longer applied when this list opens."
+msgstr ""
+
+#. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/js/layout_panel.js:0
 msgid "“%s” is no longer shared."
 msgstr ""
 
@@ -603,4 +662,16 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/smart_list_view_pro/static/src/js/layout_panel.js:0
 msgid "“%s” is now shared with all internal users."
+msgstr ""
+
+#. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/js/layout_panel.js:0
+msgid "“%s” is now the team default for this list."
+msgstr ""
+
+#. module: smart_list_view_pro
+#. odoo-javascript
+#: code:addons/smart_list_view_pro/static/src/js/layout_panel.js:0
+msgid "“%s” will be applied every time you open this list."
 msgstr ""

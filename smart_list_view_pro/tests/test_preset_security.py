@@ -100,6 +100,24 @@ class TestPresetSecurity(PresetCase):
         with self.assertRaises(AccessError):
             as_a.unlink()
 
+    def test_only_layout_admins_set_the_team_default(self):
+        shared = self.make(self.layout_admin, name="Team", visibility="shared")
+        with self.assertRaises(AccessError):
+            shared.with_user(self.user_a).set_default()
+        with self.assertRaises(AccessError):
+            shared.with_user(self.user_a).write({"is_default": True})
+        shared.with_user(self.layout_admin).set_default()
+        with self.assertRaises(AccessError):
+            shared.with_user(self.user_a).clear_default()
+        self.assertTrue(shared.is_default)
+
+    def test_cannot_set_someone_elses_default(self):
+        theirs = self.make(self.user_b)
+        for user in (self.user_a, self.layout_admin):
+            with self.subTest(user=user.login), self.assertRaises(AccessError):
+                theirs.with_user(user).set_default()
+        self.assertFalse(theirs.is_default)
+
     def test_employee_duplicates_shared_into_personal(self):
         shared = self.make(self.layout_admin, name="Sales Review", visibility="shared")
         copy = shared.with_user(self.user_a).copy()

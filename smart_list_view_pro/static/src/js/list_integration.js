@@ -1,4 +1,4 @@
-import { reactive, useEffect, useState, useSubEnv } from "@odoo/owl";
+import { onWillStart, reactive, useEffect, useState, useSubEnv } from "@odoo/owl";
 import { evaluateBooleanExpr } from "@web/core/py_js/py";
 import { patch } from "@web/core/utils/patch";
 import { ListController } from "@web/views/list/list_controller";
@@ -26,6 +26,35 @@ patch(ListController.prototype, {
             });
             useSubEnv({ smartListLayout: this.smartLayout });
             this.getSmartLayoutColumns = this.getSmartLayoutColumns.bind(this);
+            // Fetched alongside the records, so the default layout is there on
+            // the first render (no flash of the standard columns).
+            onWillStart(() => this.loadSmartDefaultLayout());
+        }
+    },
+
+    /**
+     * Apply the user's default layout of this list, else the team default.
+     * The stored entries are applied as they are: columns the view no longer
+     * offers are ignored and new ones keep their native visibility.
+     * A failure never blocks the list, which then shows the standard columns.
+     */
+    async loadSmartDefaultLayout() {
+        const config = this.env.config;
+        let preset;
+        try {
+            preset = await this.orm.call("smart.list.preset", "get_default_preset", [
+                this.props.resModel,
+                config.viewId || 0,
+                config.actionId || 0,
+            ]);
+        } catch (error) {
+            // Includes network errors: the list must open whatever happens here.
+            console.warn("Smart List View Pro: default layout not loaded", error);
+            return;
+        }
+        if (preset && preset.valid && preset.columns.length && this.smartLayout.columns === null) {
+            this.smartLayout.columns = preset.columns;
+            this.smartLayout.applied = { id: preset.id, name: preset.name, columns: preset.columns };
         }
     },
 

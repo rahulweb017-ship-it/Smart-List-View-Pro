@@ -60,6 +60,9 @@ class SmartListPreset(models.Model):
     action_ref = fields.Integer(string="Window Action ID", default=0)
     view_key = fields.Char(compute="_compute_view_key", store=True, index=True)
     layout_json = fields.Text(required=True)
+    # Applied automatically when the list opens: the user's own default first,
+    # then the shared (team) default, else Odoo's standard columns.
+    is_default = fields.Boolean(string="Default", default=False, copy=False)
     active = fields.Boolean(default=True)
 
     _personal_name_unique = models.UniqueIndex(
@@ -69,6 +72,14 @@ class SmartListPreset(models.Model):
     _shared_name_unique = models.UniqueIndex(
         "(view_key, lower(name)) WHERE visibility = 'shared' AND active",
         "A shared layout with this name already exists for this list.",
+    )
+    _personal_default_unique = models.UniqueIndex(
+        "(owner_id, view_key) WHERE visibility = 'personal' AND active AND is_default",
+        "You already have a default layout for this list.",
+    )
+    _shared_default_unique = models.UniqueIndex(
+        "(view_key) WHERE visibility = 'shared' AND active AND is_default",
+        "This list already has a team default layout.",
     )
 
     @api.depends("model_name", "view_ref", "action_ref")
@@ -253,6 +264,9 @@ class SmartListPreset(models.Model):
                     raise AccessError(_("You can only change your own layouts."))
         vals = dict(vals)
         vals.pop("view_key", None)
+        if "active" in vals and not vals["active"]:
+            # An archived (unpublished) layout is no longer anyone's default.
+            vals["is_default"] = False
         if "name" in vals:
             vals["name"] = self._normalize_name(vals["name"])
             if not self.env.su:
@@ -309,8 +323,65 @@ class SmartListPreset(models.Model):
         raise ValidationError(_("Too many copies of this layout."))
 
     # ------------------------------------------------------------------
+    # Defaults
+    # ------------------------------------------------------------------
+
+    def _default_siblings_domain(self):
+        """Other defaults this preset would replace (same list and scope)."""
+        self.ensure_one()
+        domain = [
+            ("id", "!=", self.id),
+            ("view_key", "=", self.view_key),
+            ("visibility", "=", self.visibility),
+            ("is_default", "=", True),
+        ]
+        if self.visibility == "personal":
+            domain.append(("owner_id", "=", self.owner_id.id))
+        return domain
+
+    def set_default(self):
+        """Make this layout the default of its list: the caller's own default
+        for a personal layout, the team default for a shared one (administrators
+        only, enforced by ``write``). The previous default is unset."""
+        self.ensure_one()
+        if not self.active:
+            raise ValidationError(_("An archived layout cannot be a default."))
+        self.search(self._default_siblings_domain()).write({"is_default": False})
+        self.write({"is_default": True})
+        return True
+
+    def clear_default(self):
+        self.write({"is_default": False})
+        return True
+
+    # ------------------------------------------------------------------
     # Client API
     # ------------------------------------------------------------------
+
+    def _client_info(self, model_name):
+        """Payload of one preset for the web client (see get_presets_for_list)."""
+        self.ensure_one()
+        try:
+            canonical, skipped = self._normalize_layout(self.layout_json, model_name, strict=False)
+            columns, valid = json.loads(canonical)["columns"], True
+        except ValidationError:
+            columns, skipped, valid = [], 0, False
+        return {
+            "id": self.id,
+            "name": self.name,
+            "visibility": self.visibility,
+            "is_owner": self.owner_id.id == self.env.uid,
+            "is_default": self.is_default,
+            "columns": columns,
+            "skipped": skipped,
+            "valid": valid,
+        }
+
+    @api.model
+    def _list_presets(self, model_name, view_ref, action_ref):
+        self._check_refs({"view_ref": view_ref, "action_ref": action_ref})
+        self._get_target_model(model_name)
+        return self.search([("view_key", "=", compute_view_key(model_name, view_ref, action_ref))])
 
     @api.model
     def get_presets_for_list(self, model_name, view_ref=0, action_ref=0):
@@ -322,25 +393,23 @@ class SmartListPreset(models.Model):
         valid visible column is returned with ``valid: False`` and no columns.
         Only technical field names are returned, never labels or record values.
         """
-        self._check_refs({"view_ref": view_ref, "action_ref": action_ref})
-        self._get_target_model(model_name)
-        view_key = compute_view_key(model_name, view_ref, action_ref)
-        result = []
-        for preset in self.search([("view_key", "=", view_key)]):
-            try:
-                canonical, skipped = self._normalize_layout(
-                    preset.layout_json, model_name, strict=False
-                )
-                columns, valid = json.loads(canonical)["columns"], True
-            except ValidationError:
-                columns, skipped, valid = [], 0, False
-            result.append({
-                "id": preset.id,
-                "name": preset.name,
-                "visibility": preset.visibility,
-                "is_owner": preset.owner_id.id == self.env.uid,
-                "columns": columns,
-                "skipped": skipped,
-                "valid": valid,
-            })
-        return result
+        presets = self._list_presets(model_name, view_ref, action_ref)
+        return [preset._client_info(model_name) for preset in presets]
+
+    @api.model
+    def get_default_preset(self, model_name, view_ref=0, action_ref=0):
+        """The layout to apply when this list opens, or False.
+
+        The caller's own default wins over the team default. A default that is
+        no longer applicable (no valid visible column) is skipped.
+        """
+        presets = self._list_presets(model_name, view_ref, action_ref).filtered("is_default")
+        mine = presets.filtered(
+            lambda p: p.visibility == "personal" and p.owner_id.id == self.env.uid
+        )
+        team = presets.filtered(lambda p: p.visibility == "shared")
+        for preset in mine + team:
+            info = preset._client_info(model_name)
+            if info["valid"]:
+                return info
+        return False

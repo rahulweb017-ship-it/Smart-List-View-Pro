@@ -1,6 +1,22 @@
 import { registry } from "@web/core/registry";
 
 /**
+ * Show the list view. Some actions already open on it (Odoo can remember the
+ * last view): clicking the switcher then reloads the list, and the next steps
+ * could act on the list that is about to be replaced.
+ */
+function switchToListStep() {
+    return {
+        trigger: ".o_switch_view.o_list",
+        run() {
+            if (!document.querySelector(".o_action_manager .o_list_view")) {
+                document.querySelector(".o_switch_view.o_list").click();
+            }
+        },
+    };
+}
+
+/**
  * Real-browser smoke check on an actual backend list: the Layouts control
  * works, a layout can be edited and reset on the real columns, and native
  * list behaviour (sort, pager, selection, record links) is unaffected.
@@ -11,7 +27,7 @@ function listLayoutsSteps({ first, second, resize }) {
     const row = (field) => `.o_smart_list_column[data-field=${field}]`;
     const nativeOrder = `thead th[data-name=${first}] + th[data-name=${second}]`;
     return [
-        { trigger: ".o_switch_view.o_list", run: "click" },
+        switchToListStep(),
         { trigger: ".o_list_view .o_data_row" },
         // Layouts control and panel.
         { trigger: ".o_control_panel .o_smart_list_layouts_button", run: "click" },
@@ -80,7 +96,7 @@ const shared = ".o_smart_list_section_shared";
 registry.category("web_tour.tours").add("smart_list_view_pro_presets_admin", {
     url: "/odoo/action-contacts.action_contacts",
     steps: () => [
-        { trigger: ".o_switch_view.o_list", run: "click" },
+        switchToListStep(),
         { trigger: ".o_list_view .o_data_row" },
         { trigger: ".o_control_panel .o_smart_list_layouts_button", run: "click" },
         { trigger: `${personal} .o_smart_list_empty` },
@@ -125,7 +141,7 @@ registry.category("web_tour.tours").add("smart_list_view_pro_presets_admin", {
 registry.category("web_tour.tours").add("smart_list_view_pro_presets_employee", {
     url: "/odoo/action-contacts.action_contacts",
     steps: () => [
-        { trigger: ".o_switch_view.o_list", run: "click" },
+        switchToListStep(),
         { trigger: ".o_list_view .o_data_row" },
         { trigger: ".o_control_panel .o_smart_list_layouts_button", run: "click" },
         // The administrator's personal layout is not visible to others.
@@ -147,3 +163,44 @@ registry.category("web_tour.tours").add("smart_list_view_pro_presets_employee", 
         { trigger: "body:not(:has(.o_smart_list_panel))" },
     ],
 });
+
+/** A starred layout is applied again when the list is opened after a reload. */
+registry.category("web_tour.tours").add("smart_list_view_pro_default_reload", {
+    url: "/odoo/action-contacts.action_contacts?view_type=list",
+    steps: () => [
+        { trigger: ".o_list_view .o_data_row" },
+        { trigger: "thead th[data-name=email]" },
+        { trigger: ".o_control_panel .o_smart_list_layouts_button", run: "click" },
+        { trigger: ".o_smart_list_column[data-field=email] input[type=checkbox]", run: "click" },
+        { trigger: "thead:not(:has(th[data-name=email]))" },
+        { trigger: ".o_smart_list_save_new", run: "click" },
+        { trigger: ".o_smart_list_name_form .o_smart_list_name_input", run: "edit SLV Default" },
+        { trigger: ".o_smart_list_name_form .o_smart_list_form_save", run: "click" },
+        { trigger: `${personal} .o_smart_list_apply:contains(SLV Default)` },
+        { trigger: `${personal} .o_smart_list_default`, run: "click" },
+        { trigger: `${personal} .o_smart_list_default_badge` },
+        { trigger: ".o_smart_list_panel .btn-close", run: "click" },
+        {
+            trigger: "body:not(:has(.o_smart_list_panel))",
+            run: () => window.location.reload(),
+            expectUnloadPage: true,
+        },
+        // After the reload the layout is back without touching anything.
+        { trigger: ".o_list_view .o_data_row" },
+        { trigger: "thead:not(:has(th[data-name=email]))" },
+        { trigger: ".o_control_panel .o_smart_list_layouts_button", run: "click" },
+        { trigger: ".o_smart_list_applied_notice:contains(SLV Default)" },
+        // Un-starring brings the standard columns back on the next visit.
+        { trigger: `${personal} .o_smart_list_default`, run: "click" },
+        { trigger: `${personal}:not(:has(.o_smart_list_default_badge))` },
+        { trigger: ".o_smart_list_panel .btn-close", run: "click" },
+        {
+            trigger: "body:not(:has(.o_smart_list_panel))",
+            run: () => window.location.reload(),
+            expectUnloadPage: true,
+        },
+        { trigger: ".o_list_view .o_data_row" },
+        { trigger: "thead th[data-name=email]" },
+    ],
+});
+

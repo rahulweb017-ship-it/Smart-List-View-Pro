@@ -226,6 +226,11 @@ export class SmartLayoutPanel extends Component {
             delete: _t("Delete %s", preset.name),
             publish: _t("Publish %s as a shared layout", preset.name),
             unpublish: _t("Unpublish %s", preset.name),
+            setDefault:
+                preset.visibility === "shared"
+                    ? _t("Open this list with %s for every user without a default of their own", preset.name)
+                    : _t("Open this list with %s every time", preset.name),
+            clearDefault: _t("Stop opening this list with %s", preset.name),
         };
         return labels[action];
     }
@@ -326,6 +331,26 @@ export class SmartLayoutPanel extends Component {
                 { type: "warning" }
             );
         }
+    }
+
+    canSetDefault(preset) {
+        return this.canEdit(preset) && (preset.is_default || preset.valid);
+    }
+
+    async onToggleDefault(preset) {
+        if (!this.canSetDefault(preset)) {
+            return;
+        }
+        const method = preset.is_default ? "clear_default" : "set_default";
+        let message;
+        if (preset.is_default) {
+            message = _t("“%s” is no longer applied when this list opens.", preset.name);
+        } else if (preset.visibility === "shared") {
+            message = _t("“%s” is now the team default for this list.", preset.name);
+        } else {
+            message = _t("“%s” will be applied every time you open this list.", preset.name);
+        }
+        await this.mutate(() => this.orm.call(PRESET_MODEL, method, [[preset.id]]), message);
     }
 
     // Name form (save as new / rename) ---------------------------------

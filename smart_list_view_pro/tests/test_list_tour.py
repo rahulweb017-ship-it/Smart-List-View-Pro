@@ -60,3 +60,11 @@ class TestPresetTours(HttpCase):
         self.assertEqual(copy.visibility, "personal")
         # The shared layout itself is untouched by the employee.
         self.assertEqual(shared.filtered("active").layout_json, mine.layout_json)
+
+    def test_default_layout_survives_reload(self):
+        if self.env["ir.module.module"]._get("contacts").state != "installed":
+            self.skipTest("contacts not installed")
+        self.start_tour("/odoo", "smart_list_view_pro_default_reload", login="admin")
+        preset = self.env["smart.list.preset"].search([("name", "=", "SLV Default")])
+        self.assertEqual(len(preset), 1)
+        self.assertFalse(preset.is_default)

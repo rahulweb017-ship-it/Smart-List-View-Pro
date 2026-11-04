@@ -86,7 +86,8 @@
             <div t-elif="applied" class="d-flex align-items-start gap-2 mb-3 o_smart_list_applied_notice" role="status">
                 <div class="flex-grow-1 small">
                     Layout <strong t-esc="applied.name"/> is applied.
-                    <div class="text-muted">It is not applied again automatically after a reload.</div>
+                    <div t-if="appliedPreset and appliedPreset.is_default" class="text-muted">It is applied automatically when this list opens.</div>
+                    <div t-elif="appliedPreset and canEdit(appliedPreset)" class="text-muted">Click the star to apply it every time this list opens.</div>
                 </div>
                 <button type="button" class="btn btn-sm btn-secondary o_smart_list_reset" t-on-click="onReset">Reset</button>
             </div>
@@ -157,8 +158,22 @@
                     <t t-esc="preset.name"/>
                     <small t-if="!preset.valid" class="text-muted ms-1">(no longer applicable)</small>
                 </button>
+                <span t-if="preset.is_default" class="badge text-bg-warning o_smart_list_default_badge"
+                      t-att-title="preset.visibility === 'shared' ? 'Applied when a user without a default of their own opens this list' : 'Applied when you open this list'">
+                    <t t-if="preset.visibility === 'shared'">Team default</t>
+                    <t t-else="">Default</t>
+                </span>
                 <span t-if="isApplied(preset)" class="badge text-bg-light o_smart_list_applied_badge">Applied</span>
                 <t t-set="editable" t-value="canEdit(preset)"/>
+                <button t-if="canSetDefault(preset)" type="button" class="btn btn-sm btn-light o_smart_list_default"
+                        t-att-class="{ 'text-warning': preset.is_default }"
+                        t-att-disabled="state.busy"
+                        t-att-aria-pressed="preset.is_default ? 'true' : 'false'"
+                        t-att-aria-label="actionLabel(preset.is_default ? 'clearDefault' : 'setDefault', preset)"
+                        t-att-title="actionLabel(preset.is_default ? 'clearDefault' : 'setDefault', preset)"
+                        t-on-click="() => this.onToggleDefault(preset)">
+                    <i t-attf-class="fa {{ preset.is_default ? 'fa-star' : 'fa-star-o' }}" aria-hidden="true"/>
+                </button>
                 <button t-if="editable" type="button" class="btn btn-sm btn-light o_smart_list_rename"
                         t-att-disabled="state.busy" t-att-aria-label="actionLabel('rename', preset)"
                         t-att-title="actionLabel('rename', preset)" t-on-click="() => this.onStartRename(preset)">
